@@ -63,20 +63,9 @@ def test_sample():
     for dirt, name in test_directions:
         print(f"\n   测试方向: {name} ({dirt.name})")
 
-        # 设置原点
-        if dirt == direction.up or dirt == direction.down:
-            origin_z = z if dirt == direction.down else z + height
-            origin = [x, y, origin_z]
-        elif dirt == direction.left or dirt == direction.right:
-            origin_x = x if dirt == direction.left else x + length
-            origin = [origin_x, y, z]
-        else:
-            origin_y = y if dirt == direction.backward else y + width
-            origin = [x, origin_y, z]
-
         try:
             # 调用 sample 函数
-            dist_map = sample(mesh, colors, dirt, origin)
+            dist_map = sample(mesh, colors, dirt)
 
             print(f"   ✓ 采样成功")
             print(f"     - 网格尺寸: {dist_map.width} x {dist_map.height}")
