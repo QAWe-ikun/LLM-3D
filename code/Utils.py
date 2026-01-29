@@ -34,13 +34,13 @@ def read_glb_vertices(file_path):
 
     # 获取顶点颜色数据
     colors = None
-    if hasattr(mesh.visual, 'vertex_colors'):
+    if hasattr(mesh.visual, 'vertex_colors'):  # type: ignore
         # 如果有顶点颜色，直接使用
-        colors = np.array(mesh.visual.vertex_colors[:, :3])  # 只取RGB，不要alpha通道
-    elif hasattr(mesh.visual, 'to_color'):
+        colors = np.array(mesh.visual.vertex_colors[:, :3])  # type: ignore  # 只取RGB，不要alpha通道
+    elif hasattr(mesh.visual, 'to_color'):  # type: ignore
         # 如果是纹理模型，转换为顶点颜色
         try:
-            color_visual = mesh.visual.to_color()
+            color_visual = mesh.visual.to_color()  # type: ignore
             colors = np.array(color_visual.vertex_colors[:, :3])
         except:
             # 如果转换失败，使用默认白色
