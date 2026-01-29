@@ -4,7 +4,7 @@
 包含 Room 类，表示一个完整的3D场景空间
 """
 import json
-from utils import direction
+from utils import direction, SAMPLE_RATE
 from .direction_map import DirectionMap
 from .plane_map import PlaneMap
 from .item import Item
@@ -24,7 +24,7 @@ class Room:
         x: float = 0.0,
         y: float = 0.0,
         z: float = 0.0,
-        sample_interval: float = 0.1,
+        sample_interval: float = SAMPLE_RATE,
         initial_color: tuple[int, int, int] = (255, 255, 255)
     ):
         """
@@ -38,7 +38,7 @@ class Room:
             x: 房间原点x坐标（默认为0）
             y: 房间原点y坐标（默认为0）
             z: 房间原点z坐标（默认为0）
-            sample_interval: 采样间隔（米），用于计算距离图的采样点数量（默认0.1米）
+            sample_interval: 采样间隔（米），用于计算距离图的采样点数量，默认使用全局 SAMPLE_RATE
             initial_color: 初始颜色RGB值（默认为白色(255, 255, 255)）
         """
         self.room_type = room_type

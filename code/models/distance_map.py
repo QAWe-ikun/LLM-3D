@@ -4,7 +4,7 @@
 包含 DistanceMap 类，用于存储和管理某个方向上的距离和颜色信息
 """
 import numpy as np
-from utils import direction
+from utils import direction, SAMPLE_RATE
 
 
 class DistanceMap:
@@ -79,14 +79,67 @@ class DistanceMap:
         self.y = location[1]
         self.z = location[2]
 
-    def update(self, cover_dist_map: np.ndarray) -> None:
+    def update(self, cover_distance_map: 'DistanceMap', color_threshold: int = 5) -> None:
         """
-        更新距离图，取当前距离和覆盖距离的最小值
+        更新距离图，根据覆盖距离图的位置进行局部更新
 
         参数:
-            cover_dist_map: 覆盖的距离图数据
+            cover_distance_map: 覆盖的距离图对象
+            color_threshold: 颜色更新阈值（网格点数量），当距离小于此值时使用平面颜色，否则使用物体颜色
         """
-        self.distance = np.minimum(self.distance, cover_dist_map)
+        # 计算覆盖距离图在当前距离图中的位置偏移（以采样点为单位）
+        offset_x = int(round((cover_distance_map.x - self.x) / SAMPLE_RATE))
+        offset_y = int(round((cover_distance_map.y - self.y) / SAMPLE_RATE))
+
+        # 获取覆盖距离图的数据
+        cover_data = cover_distance_map.get_dist_map()
+        cover_height, cover_width = cover_data.shape
+
+        # 计算重叠区域
+        # 在当前距离图中的起始和结束位置
+        start_y = max(0, offset_y)
+        start_x = max(0, offset_x)
+        end_y = min(self.height, offset_y + cover_height)
+        end_x = min(self.width, offset_x + cover_width)
+
+        # 如果有重叠区域，进行更新
+        if start_y < end_y and start_x < end_x:
+            # 在覆盖距离图中的起始和结束位置
+            cover_start_y = max(0, -offset_y)
+            cover_start_x = max(0, -offset_x)
+            cover_end_y = cover_start_y + (end_y - start_y)
+            cover_end_x = cover_start_x + (end_x - start_x)
+
+            # 提取重叠区域
+            current_region: np.ndarray = self.distance[start_y:end_y, start_x:end_x].copy()
+            cover_region: np.ndarray = cover_data[cover_start_y:cover_end_y, cover_start_x:cover_end_x]
+
+            # 计算 mask（在更新距离之前）
+            mask = cover_region < current_region
+
+            # 取最小值更新（表示最近的障碍物）
+            self.distance[start_y:end_y, start_x:end_x] = np.minimum(current_region, cover_region)
+
+            # 同样更新颜色图
+            cover_color = cover_distance_map.get_color_map()
+            if cover_color is not None and cover_color.size > 0 and np.any(mask):
+                # 根据距离阈值决定使用哪个颜色
+                # 当距离大于阈值时，使用平面颜色（保持不变）
+                # 当距离小于等于阈值时，使用物体颜色
+                updated_color: np.ndarray = self.color[start_y:end_y, start_x:end_x].copy()
+                cover_color_region: np.ndarray = cover_color[cover_start_y:cover_end_y, cover_start_x:cover_end_x]
+
+                # 计算更新后的距离
+                updated_distance = np.minimum(current_region, cover_region)
+
+                # 创建颜色更新的 mask：距离大于等于阈值且需要更新的位置
+                color_update_mask = mask & (updated_distance >= color_threshold)
+
+                # 只在满足条件的位置更新为物体颜色
+                if np.any(color_update_mask):
+                    updated_color[color_update_mask] = cover_color_region[color_update_mask]
+
+                self.color[start_y:end_y, start_x:end_x] = cover_color_region
 
     def get_dist_map(self) -> np.ndarray:
         """

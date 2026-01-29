@@ -3,7 +3,7 @@
 
 包含 PlaneMap 类，表示某个方向上的一个平面及其上的物体
 """
-from utils import direction
+from utils import direction, SAMPLE_RATE
 from .distance_map import DistanceMap
 from .item import Item
 
@@ -67,9 +67,9 @@ class PlaneMap:
         更新平面的距离图
 
         参数:
-            distance: 新的距离图对象
+            distance: 新的距离图对象（通常是物体的距离图）
         """
-        self.distance.update(cover_dist_map=distance.get_dist_map())
+        self.distance.update(cover_distance_map=distance)
 
     def find_location(self, new_item: Item) -> tuple[float, float, float]:
         """
