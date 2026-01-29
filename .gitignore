@@ -1,0 +1,9 @@
+# claude 
+/.claude
+
+# glb
+**/*.glb
+
+# python
+**/__pycache__/
+**/*.pyc

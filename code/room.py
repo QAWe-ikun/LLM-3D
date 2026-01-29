@@ -13,10 +13,13 @@ class distance_map:
         self.height = height
         self.width = width
         self.distance = np.zeros((height, width), dtype=np.uint8)
-        self.embedding = np.empty((height, width), dtype=str)
+        self.color = np.zeros((height, width, 3), dtype=np.uint8)
 
     def set_dist_map(self, bias: np.ndarray):
         self.distance = bias
+
+    def set_color_map(self, color_map: np.ndarray):
+        self.color = color_map
 
     def move_dist_map(self, location: list[int]):
         self.x = location[0]
@@ -39,11 +42,17 @@ class item:
         self.item_name = item_name
         self.item_description = item_description
         file_path = find_glb_model(item_name)
-        vertices = read_glb_vertices(file_path)
-        self.x, self.y, self.z, self.length, self.width, self.height = get_model_size(item_vertices=vertices)
-        self.round_distance = self.get_round_distance(vertices)
+        vertices, colors, mesh = read_glb_vertices(file_path)
+        self.vertices = vertices
+        self.colors = colors
+        self.mesh = mesh
+        x, y, z, length, width, height, length_sample_num, width_sample_num, height_sample_num = get_model_size(item_vertices=vertices)
+        self.x, self.y, self.z = x, y, z
+        self.length, self.width, self.height = length, width, height
+        self.length_sample_num, self.width_sample_num, self.height_sample_num = length_sample_num, width_sample_num, height_sample_num
+        self.round_distance = self.get_round_distance()
 
-    def get_round_distance(self, item_vertices):
+    def get_round_distance(self):
         """
         get item sampling distance
         """
@@ -51,14 +60,18 @@ class item:
         for dirt in direction:
             if dirt == direction.up or dirt == direction.down:
                 z = self.z if dirt == direction.down else self.z + self.height
-                round_distance[dirt] = distance_map(dirt, self.x, self.y, z, self.length, self.width)
+                origin = [self.x, self.y, z]
+                round_distance[dirt] = sample(self.mesh, dirt, origin)
 
             elif dirt == direction.left or dirt == direction.right:
                 x = self.x if dirt == direction.left else self.x + self.length
-                round_distance[dirt] = distance_map(dirt, x, self.y, self.z, self.width, self.height)
+                origin = [x, self.y, self.z]
+                round_distance[dirt] = sample(self.mesh, dirt, origin)
+
             else:
-                y = self.y if dirt == direction.backward else self.y + self.width
-                round_distance[dirt] = distance_map(dirt, self.x, y, self.z, self.length, self.height)
+                y = self.y if dirt == direction.forward else self.y + self.width
+                origin = [self.x, y, self.z]
+                round_distance[dirt] = sample(self.mesh, dirt, origin)
 
         return round_distance
 
