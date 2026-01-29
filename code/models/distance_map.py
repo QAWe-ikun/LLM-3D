@@ -90,6 +90,24 @@ class DistanceMap:
         # 计算覆盖距离图在当前距离图中的位置偏移（以采样点为单位）
         offset_x = int(round((cover_distance_map.x - self.x) / SAMPLE_RATE))
         offset_y = int(round((cover_distance_map.y - self.y) / SAMPLE_RATE))
+        offset_z = int(round((cover_distance_map.z - self.z) / SAMPLE_RATE))
+
+        # 根据 cover_distance_map 的方向确定平面偏移和深度偏移
+        if cover_distance_map.dirt == direction.up or cover_distance_map.dirt == direction.down:
+            # XY平面投影，Z为深度
+            plane_offset_1 = offset_x
+            plane_offset_2 = offset_y
+            depth_offset = offset_z
+        elif cover_distance_map.dirt == direction.left or cover_distance_map.dirt == direction.right:
+            # YZ平面投影，X为深度
+            plane_offset_1 = offset_y
+            plane_offset_2 = offset_z
+            depth_offset = offset_x
+        else:  # forward or backward
+            # XZ平面投影，Y为深度
+            plane_offset_1 = offset_x
+            plane_offset_2 = offset_z
+            depth_offset = offset_y
 
         # 获取覆盖距离图的数据
         cover_data = cover_distance_map.get_dist_map()
@@ -97,16 +115,16 @@ class DistanceMap:
 
         # 计算重叠区域
         # 在当前距离图中的起始和结束位置
-        start_y = max(0, offset_y)
-        start_x = max(0, offset_x)
-        end_y = min(self.height, offset_y + cover_height)
-        end_x = min(self.width, offset_x + cover_width)
+        start_y = max(0, plane_offset_2)
+        start_x = max(0, plane_offset_1)
+        end_y = min(self.height, plane_offset_2 + cover_height)
+        end_x = min(self.width, plane_offset_1 + cover_width)
 
         # 如果有重叠区域，进行更新
         if start_y < end_y and start_x < end_x:
             # 在覆盖距离图中的起始和结束位置
-            cover_start_y = max(0, -offset_y)
-            cover_start_x = max(0, -offset_x)
+            cover_start_y = max(0, -plane_offset_2)
+            cover_start_x = max(0, -plane_offset_1)
             cover_end_y = cover_start_y + (end_y - start_y)
             cover_end_x = cover_start_x + (end_x - start_x)
 
@@ -114,11 +132,14 @@ class DistanceMap:
             current_region: np.ndarray = self.distance[start_y:end_y, start_x:end_x].copy()
             cover_region: np.ndarray = cover_data[cover_start_y:cover_end_y, cover_start_x:cover_end_x]
 
-            # 计算 mask（在更新距离之前）
-            mask = cover_region < current_region
+            # 计算 mask（考虑深度偏移后的距离比较）
+            mask = (cover_region + depth_offset) < current_region
 
-            # 取最小值更新（表示最近的障碍物）
-            self.distance[start_y:end_y, start_x:end_x] = np.minimum(current_region, cover_region)
+            # 取最小值更新（表示最近的障碍物），同时加上深度偏移
+            # 使用 int32 避免溢出
+            cover_region_with_offset = cover_region.astype(np.int32) + depth_offset
+            updated_distance = np.minimum(current_region.astype(np.int32), cover_region_with_offset).astype(np.int16)
+            self.distance[start_y:end_y, start_x:end_x] = updated_distance
 
             # 同样更新颜色图
             cover_color = cover_distance_map.get_color_map()
@@ -129,8 +150,9 @@ class DistanceMap:
                 updated_color: np.ndarray = self.color[start_y:end_y, start_x:end_x].copy()
                 cover_color_region: np.ndarray = cover_color[cover_start_y:cover_end_y, cover_start_x:cover_end_x]
 
-                # 计算更新后的距离
-                updated_distance = np.minimum(current_region, cover_region)
+                # 计算更新后的距离（与上面保持一致）
+                cover_region_with_offset = cover_region.astype(np.int32) + depth_offset
+                updated_distance = np.minimum(current_region.astype(np.int32), cover_region_with_offset).astype(np.int16)
 
                 # 创建颜色更新的 mask：距离大于等于阈值且需要更新的位置
                 color_update_mask = mask & (updated_distance >= color_threshold)
@@ -139,7 +161,7 @@ class DistanceMap:
                 if np.any(color_update_mask):
                     updated_color[color_update_mask] = cover_color_region[color_update_mask]
 
-                self.color[start_y:end_y, start_x:end_x] = cover_color_region
+                self.color[start_y:end_y, start_x:end_x] = updated_color
 
     def get_dist_map(self) -> np.ndarray:
         """
