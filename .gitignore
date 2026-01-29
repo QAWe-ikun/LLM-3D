@@ -9,5 +9,5 @@
 **/*.pyc
 
 # project
-/output/
+/output
 /.vscode/

@@ -18,7 +18,7 @@ class direction(Enum):
 def find_opposite_direction(dirt: direction) -> direction:
     return direction(5 - dirt.value)
 
-def find_glb_model(model_name):
+def find_glb_model(model_name: str):
     """
     TODO: connect with db
     """
@@ -51,74 +51,97 @@ def read_glb_vertices(file_path):
 
     return vertices, colors, mesh
 
-def normalize_glb(vertices, theoretical_volume=None, theoretical_length=None, center=True):
+def get_model_size(item_vertices):   
+    """                                                                                                                                            
+    计算3D模型的边界框尺寸和采样参数                                                                                                               
+  
+    参数:
+        item_vertices: numpy数组，形状为(N, 3)，包含模型的所有顶点坐标
+
+    返回:
+        tuple: (x, y, z, length, width, height, length_sample_num, width_sample_num, height_sample_num)
+            - x, y, z: 模型在各轴的最小坐标值（边界框起点）
+            - length, width, height: 模型在各轴的尺寸
+            - length_sample_num, width_sample_num, height_sample_num: 各轴的采样点数量
     """
-    归一化GLB模型的顶点坐标
+    # 计算各轴的最小值和最大值（一次性计算，避免重复）
+    min_coords = np.min(item_vertices, axis=0)  # [x_min, y_min, z_min]
+    max_coords = np.max(item_vertices, axis=0)  # [x_max, y_max, z_max]
+
+    # 提取边界框起点坐标
+    x, y, z = min_coords
+
+    # 计算各轴的尺寸（长度、宽度、高度）
+    dimensions = max_coords - min_coords
+    length, width, height = dimensions
+
+    # 根据采样率计算各轴需要的采样点数量
+    length_sample_num = math.ceil(length / SAMPLE_RATE)
+    width_sample_num = math.ceil(width / SAMPLE_RATE)
+    height_sample_num = math.ceil(height / SAMPLE_RATE)
+
+    return x, y, z, length, width, height, length_sample_num, width_sample_num, height_sample_num
+
+def normalize_glb(vertices, theoretical_volume: float, actual_volume: float, center: bool = True) -> tuple:
+    """
+    归一化GLB模型的顶点坐标，使其符合真实世界的尺寸比例
 
     参数:
         vertices: numpy数组，形状为(N, 3)的顶点坐标
-        theoretical_volume: 理论体积，如果提供则基于体积比例进行缩放
-        theoretical_length: 理论长度（最长边），如果提供则基于长度比例进行缩放
+        theoretical_volume: 理论体积（立方米），表示模型在现实世界中的体积
+        actual_volume: GLB单位转换系数，表示现实世界的一立方米对应GLB空间中的体积
         center: 是否将模型中心移到原点，默认为True
 
     返回:
-        归一化后的顶点坐标
+        tuple: (normalized_vertices, center_point)
+            - normalized_vertices: 归一化后的顶点坐标数组
+            - center_point: 模型的中心点坐标
 
-    注意:
-        - 如果同时提供theoretical_volume和theoretical_length，优先使用theoretical_volume
-        - 如果都不提供，则只进行中心化处理（如果center=True）
+    示例:
+        如果一个立方体在现实中是1m³，GLB体积中=0.01，则：
+        theoretical_volume = 1.0
+        actual_volume = 0.01
     """
+    # 确保输入为float64类型，提高计算精度
     vertices = np.array(vertices, dtype=np.float64)
 
     # 计算当前模型的边界框
     min_coords = np.min(vertices, axis=0)
     max_coords = np.max(vertices, axis=0)
 
-    # 计算当前尺寸
+    # 计算当前尺寸（长、宽、高）
     current_size = max_coords - min_coords
-    current_length = np.max(current_size)  # 最长边
-    current_width = np.median(current_size)  # 中间边
-    current_height = np.min(current_size)  # 最短边
 
     # 计算当前体积（近似为长方体）
-    current_volume = current_size[0] * current_size[1] * current_size[2]
+    current_volume = np.prod(current_size)  # 等价于 current_size[0] * current_size[1] * current_size[2]
 
-    # 计算缩放比例
-    scale_factor = 1.0
+    # 防止除零错误
+    if current_volume < 1e-10:
+        raise ValueError("模型体积过小或为零，无法进行归一化")
 
-    if theoretical_volume is not None and current_volume > 0:
-        # 基于体积的归一化：体积比的立方根
-        volume_ratio = theoretical_volume / current_volume
-        scale_factor = np.cbrt(volume_ratio)
-    elif theoretical_length is not None and current_length > 0:
-        # 基于长度的归一化：长度比
-        scale_factor = theoretical_length / current_length
+    # 计算缩放因子
+    # theoretical_volume: 真实世界体积（m³）
+    # actual_volume: 米到GLB单位的转换系数
+    # current_volume: GLB空间中的当前体积
+    # 目标：将GLB模型缩放到真实世界尺寸
+    volume_ratio = theoretical_volume * actual_volume / current_volume
+    scale_factor = np.cbrt(volume_ratio)  # 体积比的立方根得到线性缩放因子
 
     # 应用缩放
     normalized_vertices = vertices * scale_factor
 
     # 中心化处理
+    # 计算缩放后的边界框中心点
+    min_normalized = np.min(normalized_vertices, axis=0)
+    max_normalized = np.max(normalized_vertices, axis=0)
+    center_point = (min_normalized + max_normalized) / 2
+
     if center:
-        # 计算缩放后的中心点
-        center_point = (np.min(normalized_vertices, axis=0) + np.max(normalized_vertices, axis=0)) / 2
         # 将中心移到原点
         normalized_vertices = normalized_vertices - center_point
+        center_point = np.array([0.0, 0.0, 0.0])
 
-    return normalized_vertices
-
-def get_model_size(item_vertices):
-    x = np.min(item_vertices[:, 0])
-    length = np.max(item_vertices[:, 0]) - np.min(item_vertices[:, 0])
-    y = np.min(item_vertices[:, 1])
-    width = np.max(item_vertices[:, 1]) - np.min(item_vertices[:, 1])
-    z = np.min(item_vertices[:, 2])
-    height = np.max(item_vertices[:, 2]) - np.min(item_vertices[:, 2])
-
-    length_sample_num = math.ceil(length / SAMPLE_RATE)
-    width_sample_num = math.ceil(width / SAMPLE_RATE)
-    height_sample_num = math.ceil(height / SAMPLE_RATE)
-
-    return x, y, z, length, width, height, length_sample_num, width_sample_num, height_sample_num
+    return normalized_vertices, center_point
 
 def sample(mesh, vertex_colors, dirt: direction):
     """
