@@ -3,10 +3,12 @@
 
 包含 Room 类，表示一个完整的3D场景空间
 """
+import json
 from Utils import direction
 from direction_map import DirectionMap
 from plane_map import PlaneMap
 from item import Item
+from llm_client import get_client
 
 
 class Room:
@@ -103,14 +105,74 @@ class Room:
         返回:
             选中的方向图对象
 
-        TODO: 实现基于word2vec和关系计算的方向选择算法
+        使用LLM基于语义和场景常识选择最合适的方向
         """
-        # TODO: 使用word2vec计算语义相似度
-        # 结合物体属性和房间布局选择最合适的方向
-        # 例如：画应该挂在墙上（left/right/forward/backward）
-        #      灯应该在天花板上（up）
-        #      地毯应该在地板上（down）
-        raise NotImplementedError("choice_direction_map方法尚未实现")
+        # 构造提示词，让LLM选择最合适的方向
+        item_info = {
+            "物体名称": new_item.item_name,
+            "物体描述": new_item.item_description
+        }
+
+        # 收集各个方向的信息
+        directions_info = {}
+        for dirt, dirt_map in self.direction_map_dict.items():
+            total_items = sum(len(plane.item_list) for plane in dirt_map.plane_map_list)
+            all_items = []
+            for plane in dirt_map.plane_map_list:
+                all_items.extend(plane.carry)
+
+            directions_info[dirt.name] = {
+                "物体数量": total_items,
+                "物体列表": all_items
+            }
+
+        prompt = f"""
+你是一个3D场景布局专家。现在需要为一个新物体选择最合适的放置方向。
+
+房间类型：{self.room_type}
+房间尺寸：长{self.length}米 × 宽{self.width}米 × 高{self.height}米
+
+待放置的物体：
+{json.dumps(item_info, ensure_ascii=False, indent=2)}
+
+各个方向的当前状态：
+{json.dumps(directions_info, ensure_ascii=False, indent=2)}
+
+可选方向说明：
+- up: 天花板（适合吊灯、吊扇等）
+- down: 地板（适合家具、地毯等）
+- left/right/forward/backward: 墙面（适合挂画、壁灯、柜子等）
+
+请根据物体的特性和真实场景的常识，选择最合适的方向。
+例如：
+- 床、桌子、椅子 → down（地板）
+- 吊灯、吊扇 → up（天花板）
+- 挂画、壁灯、书架 → left/right/forward/backward（墙面）
+
+请只回答方向名称（up/down/left/right/forward/backward），不要有其他内容。
+"""
+
+        try:
+            client = get_client()
+            response = client.chat(prompt)
+
+            # 解析响应，提取方向
+            direction_name = response.strip().lower()
+
+            # 尝试匹配方向
+            for dirt in direction:
+                if dirt.name.lower() == direction_name:
+                    print(f"  → LLM选择方向: {dirt.name}")
+                    return self.direction_map_dict[dirt]
+
+            # 如果没有匹配到，默认选择 down（地板）
+            print(f"  ⚠ LLM返回的方向 '{direction_name}' 无效，使用默认方向 down")
+            return self.direction_map_dict[direction.down]
+
+        except Exception as e:
+            # 如果LLM调用失败，默认选择 down（地板）
+            print(f"  ⚠ LLM调用失败: {e}，使用默认方向 down")
+            return self.direction_map_dict[direction.down]
 
     def update_direction(self, new_item: Item) -> None:
         """

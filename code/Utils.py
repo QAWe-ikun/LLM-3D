@@ -2,10 +2,7 @@ import math
 import trimesh
 import numpy as np
 from enum import Enum
-
-MAX_DEPTH = 255
-SAMPLE_NUM = 64
-SAMPLE_RATE = 1. / SAMPLE_NUM
+from config import DEFAULT_SAMPLE_INTERVAL as SAMPLE_RATE
 
 class direction(Enum):
     up = 0
@@ -152,7 +149,7 @@ def sample(mesh, vertex_colors, dirt: direction):
 
     返回: distance_map 对象
     """
-    from room import distance_map
+    from distance_map import DistanceMap
 
     vertices = mesh.vertices
 
@@ -279,7 +276,7 @@ def sample(mesh, vertex_colors, dirt: direction):
                 color_map[grid_y, grid_x] = color
 
     # 创建并返回distance_map对象
-    result = distance_map(dirt, origin[0], origin[1], origin[2], width, length)
+    result = DistanceMap(dirt, origin[0], origin[1], origin[2], width, length)
     dist_map =  height - dist_map_nearest
 
     result.set_dist_map(dist_map)

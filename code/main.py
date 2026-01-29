@@ -4,7 +4,7 @@
 包含 build 函数，用于构建房间布局
 """
 from Utils import SAMPLE_RATE
-from room_new import Room
+from room import Room
 from item import Item
 
 
