@@ -1,6 +1,9 @@
 import sys
 import os
-sys.path.append(os.path.dirname(__file__))
+
+# 添加 code 目录到 sys.path
+code_dir = os.path.join(os.path.dirname(__file__), "..", "code")
+sys.path.insert(0, code_dir)
 
 # 设置控制台编码
 import io
@@ -73,7 +76,7 @@ def test_sample():
 
         try:
             # 调用 sample 函数
-            dist_map = sample(mesh, dirt, origin)
+            dist_map = sample(mesh, colors, dirt, origin)
 
             print(f"   ✓ 采样成功")
             print(f"     - 网格尺寸: {dist_map.width} x {dist_map.height}")
@@ -91,16 +94,15 @@ def test_sample():
     # 可视化结果
     print(f"\n4. 可视化结果")
     try:
-        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-        fig.suptitle('Sample 函数测试结果 - 各方向距离图', fontsize=16)
+        # 创建距离图
+        fig1, axes1 = plt.subplots(2, 3, figsize=(15, 10))
+        fig1.suptitle('Sample 函数测试结果 - 距离图', fontsize=16)
 
         for idx, (dirt, name) in enumerate(test_directions):
-            ax = axes[idx // 3, idx % 3]
+            ax = axes1[idx // 3, idx % 3]
 
             if dirt.name in results:
                 dist_map = results[dirt.name]
-
-                # 显示距离图
                 im = ax.imshow(dist_map.distance, cmap='viridis', origin='lower')
                 ax.set_title(f'{name} ({dist_map.width}x{dist_map.height})')
                 ax.set_xlabel('Width')
@@ -111,14 +113,38 @@ def test_sample():
                 ax.set_title(name)
 
         plt.tight_layout()
+        output_dir = os.path.join(os.path.dirname(__file__), "../output")
+        os.makedirs(output_dir, exist_ok=True)
+        output_path1 = os.path.join(output_dir, "test_sample_distance.png")
+        plt.savefig(output_path1, dpi=150, bbox_inches='tight')
+        print(f"   ✓ 距离图已保存到: {output_path1}")
+        plt.close(fig1)
 
-        # 保存图像
-        output_path = os.path.join(os.path.dirname(__file__), "test_sample_result.png")
-        plt.savefig(output_path, dpi=150, bbox_inches='tight')
-        print(f"   ✓ 结果已保存到: {output_path}")
+        # 创建颜色图
+        fig2, axes2 = plt.subplots(2, 3, figsize=(15, 10))
+        fig2.suptitle('Sample 函数测试结果 - 颜色图', fontsize=16)
 
-        # 显示图像
-        plt.show()
+        for idx, (dirt, name) in enumerate(test_directions):
+            ax = axes2[idx // 3, idx % 3]
+
+            if dirt.name in results:
+                dist_map = results[dirt.name]
+                # 显示实际RGB颜色
+                color_normalized = dist_map.color.astype(np.float32) / 255.0
+                ax.imshow(color_normalized, origin='lower')
+                ax.set_title(f'{name} ({dist_map.width}x{dist_map.height})')
+                ax.set_xlabel('Width')
+                ax.set_ylabel('Height')
+            else:
+                ax.text(0.5, 0.5, '采样失败', ha='center', va='center')
+                ax.set_title(name)
+
+        plt.tight_layout()
+        output_path2 = os.path.join(output_dir, "test_sample_color.png")
+        plt.savefig(output_path2, dpi=150, bbox_inches='tight')
+        print(f"   ✓ 颜色图已保存到: {output_path2}")
+        plt.close(fig2)
+
     except Exception as e:
         print(f"   ✗ 可视化失败: {e}")
         import traceback

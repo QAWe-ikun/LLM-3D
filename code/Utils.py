@@ -4,7 +4,7 @@ import numpy as np
 from enum import Enum
 
 
-sample_num = 256
+sample_num = 64
 sample_rate = 1. / sample_num
 
 class direction(Enum):
@@ -35,9 +35,18 @@ def read_glb_vertices(file_path):
     # 获取顶点颜色数据
     colors = None
     if hasattr(mesh.visual, 'vertex_colors'):
+        # 如果有顶点颜色，直接使用
         colors = np.array(mesh.visual.vertex_colors[:, :3])  # 只取RGB，不要alpha通道
+    elif hasattr(mesh.visual, 'to_color'):
+        # 如果是纹理模型，转换为顶点颜色
+        try:
+            color_visual = mesh.visual.to_color()
+            colors = np.array(color_visual.vertex_colors[:, :3])
+        except:
+            # 如果转换失败，使用默认白色
+            colors = np.ones((len(vertices), 3), dtype=np.uint8) * 255
     else:
-        # 如果没有顶点颜色，使用默认白色
+        # 如果没有颜色信息，使用默认白色
         colors = np.ones((len(vertices), 3), dtype=np.uint8) * 255
 
     return vertices, colors, mesh
@@ -62,10 +71,11 @@ def get_model_size(item_vertices):
 
     return x, y, z, length, width, height, length_sample_num, width_sample_num, height_sample_num
 
-def sample(mesh, dirt: direction, origin: list):
+def sample(mesh, vertex_colors, dirt: direction, origin: list):
     """
     使用射线追踪对mesh进行采样
     mesh: trimesh对象
+    vertex_colors: 顶点颜色数组 (N, 3)
     dirt: 采样方向
     origin: 原点坐标 [x, y, z]
     返回: distance_map 对象
@@ -106,7 +116,8 @@ def sample(mesh, dirt: direction, origin: list):
     height = math.ceil(plane_width / sample_rate)
 
     # 创建距离图和颜色图
-    dist_map = np.zeros((height, width), dtype=np.uint8)
+    dist_map = np.zeros((height, width), dtype=np.uint8)  # 最远距离
+    dist_map_nearest = np.full((height, width), 255, dtype=np.uint8)  # 最近距离（用于颜色）
     color_map = np.ones((height, width, 3), dtype=np.uint8) * 255  # 默认白色
 
     # 对每个网格中心发射射线
@@ -152,9 +163,13 @@ def sample(mesh, dirt: direction, origin: list):
             # 转换为uint8范围
             depth_value = min(int(distance / sample_rate), 255)
 
-            # 更新最远距离
+            # 更新最远距离（用于 dist_map）
             if depth_value > dist_map[grid_y, grid_x]:
                 dist_map[grid_y, grid_x] = depth_value
+
+            # 更新最近距离（用于 color_map，避免穿模）
+            if depth_value < dist_map_nearest[grid_y, grid_x]:
+                dist_map_nearest[grid_y, grid_x] = depth_value
 
                 # 获取交点处的颜色（使用重心坐标插值）
                 tri_idx = index_tri[i]
@@ -164,7 +179,6 @@ def sample(mesh, dirt: direction, origin: list):
                 v0, v1, v2 = mesh.vertices[face]
 
                 # 计算重心坐标
-                # 使用向量叉积计算重心坐标
                 v0v1 = v1 - v0
                 v0v2 = v2 - v0
                 v0p = hit_location - v0
@@ -182,18 +196,11 @@ def sample(mesh, dirt: direction, origin: list):
                     u = 1.0 - v - w
 
                     # 使用重心坐标插值颜色
-                    if hasattr(mesh.visual, 'vertex_colors'):
-                        c0, c1, c2 = mesh.visual.vertex_colors[face][:, :3]
-                        color = (u * c0 + v * c1 + w * c2).astype(np.uint8)
-                    else:
-                        color = np.array([255, 255, 255], dtype=np.uint8)
+                    c0, c1, c2 = vertex_colors[face]
+                    color = (u * c0 + v * c1 + w * c2).astype(np.uint8)
                 else:
                     # 如果重心坐标计算失败，使用平均颜色
-                    if hasattr(mesh.visual, 'vertex_colors'):
-                        vertex_colors = mesh.visual.vertex_colors[face][:, :3]
-                        color = np.mean(vertex_colors, axis=0).astype(np.uint8)
-                    else:
-                        color = np.array([255, 255, 255], dtype=np.uint8)
+                    color = np.mean(vertex_colors[face], axis=0).astype(np.uint8)
 
                 color_map[grid_y, grid_x] = color
 

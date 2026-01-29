@@ -61,17 +61,17 @@ class item:
             if dirt == direction.up or dirt == direction.down:
                 z = self.z if dirt == direction.down else self.z + self.height
                 origin = [self.x, self.y, z]
-                round_distance[dirt] = sample(self.mesh, dirt, origin)
+                round_distance[dirt] = sample(self.mesh, self.colors, dirt, origin)
 
             elif dirt == direction.left or dirt == direction.right:
                 x = self.x if dirt == direction.left else self.x + self.length
                 origin = [x, self.y, self.z]
-                round_distance[dirt] = sample(self.mesh, dirt, origin)
+                round_distance[dirt] = sample(self.mesh, self.colors, dirt, origin)
 
             else:
                 y = self.y if dirt == direction.forward else self.y + self.width
                 origin = [self.x, y, self.z]
-                round_distance[dirt] = sample(self.mesh, dirt, origin)
+                round_distance[dirt] = sample(self.mesh, self.colors, dirt, origin)
 
         return round_distance
 
