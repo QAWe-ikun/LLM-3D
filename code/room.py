@@ -12,7 +12,7 @@ class distance_map:
         self.z = z
         self.height = height
         self.width = width
-        self.distance = np.zeros((height, width), dtype=np.uint8)
+        self.distance = np.zeros((height, width), dtype=np.int16)
         self.color = np.zeros((height, width, 3), dtype=np.uint8)
 
     def set_dist_map(self, bias: np.ndarray):

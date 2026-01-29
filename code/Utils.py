@@ -148,7 +148,7 @@ def sample(mesh, vertex_colors, dirt: direction):
         origin_z = z if dirt == direction.down else z + height
         origin = [x, y, origin_z]
         min_coord1, min_coord2 = x, y
-        plane_length, plane_width = length, width
+        plane_length, plane_width, plane_height = length, width, height
     elif dirt == direction.left or dirt == direction.right:
         # 投影到YZ平面，深度轴是X
         plane_axis1, plane_axis2, depth_axis = 1, 2, 0
@@ -156,7 +156,7 @@ def sample(mesh, vertex_colors, dirt: direction):
         origin_x = x if dirt == direction.left else x + length
         origin = [origin_x, y, z]
         min_coord1, min_coord2 = y, z
-        plane_length, plane_width = width, height
+        plane_length, plane_width, plane_height = width, height, length
     else:  # forward or backward
         # 投影到XZ平面，深度轴是Y
         plane_axis1, plane_axis2, depth_axis = 0, 2, 1
@@ -164,23 +164,24 @@ def sample(mesh, vertex_colors, dirt: direction):
         origin_y = y if dirt == direction.backward else y + width
         origin = [x, origin_y, z]
         min_coord1, min_coord2 = x, z
-        plane_length, plane_width = length, height
+        plane_length, plane_width, plane_height = length, height, width
 
     # 根据sample_rate计算网格数量
-    width = math.ceil(plane_length / SAMPLE_RATE)
-    height = math.ceil(plane_width / SAMPLE_RATE)
+    length = math.ceil(plane_length / SAMPLE_RATE)
+    width = math.ceil(plane_width / SAMPLE_RATE)
+    height = math.ceil(plane_height / SAMPLE_RATE)
+
 
     # 创建距离图和颜色图
-    dist_map = np.zeros((height, width), dtype=np.uint8)  # 最远距离
-    dist_map_nearest = np.full((height, width), MAX_DEPTH, dtype=np.uint8)  # 最近距离（用于颜色）
-    color_map = np.ones((height, width, 3), dtype=np.uint8) * 255  # 默认白色
+    dist_map_nearest = np.full((width, length), height + 1, dtype=np.int16)  # 最近距离（用于颜色）
+    color_map = np.ones((width, length, 3), dtype=np.uint8) * 255  # 默认白色
 
     # 对每个网格中心发射射线
     ray_origins = []
     grid_indices = []
 
-    for grid_y in range(height):
-        for grid_x in range(width):
+    for grid_y in range(width):
+        for grid_x in range(length):
             # 计算网格中心在投影平面上的坐标
             center_coord1 = min_coord1 + (grid_x + 0.5) * SAMPLE_RATE
             center_coord2 = min_coord2 + (grid_y + 0.5) * SAMPLE_RATE
@@ -216,10 +217,6 @@ def sample(mesh, vertex_colors, dirt: direction):
             distance = np.linalg.norm(hit_location - ray_origins[ray_idx])
 
             depth_value = int(distance / SAMPLE_RATE)
-
-            # 更新最远距离（用于 dist_map）
-            if depth_value > dist_map[grid_y, grid_x]:
-                dist_map[grid_y, grid_x] = depth_value
 
             # 更新最近距离（用于 color_map，避免穿模）
             if depth_value < dist_map_nearest[grid_y, grid_x]:
@@ -259,7 +256,9 @@ def sample(mesh, vertex_colors, dirt: direction):
                 color_map[grid_y, grid_x] = color
 
     # 创建并返回distance_map对象
-    result = distance_map(dirt, origin[0], origin[1], origin[2], height, width)
+    result = distance_map(dirt, origin[0], origin[1], origin[2], width, length)
+    dist_map =  height - dist_map_nearest
+
     result.set_dist_map(dist_map)
     result.set_color_map(color_map)
 
