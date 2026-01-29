@@ -4,11 +4,11 @@
 包含 Room 类，表示一个完整的3D场景空间
 """
 import json
-from Utils import direction
-from direction_map import DirectionMap
-from plane_map import PlaneMap
-from item import Item
-from llm_client import get_client
+from utils import direction
+from .direction_map import DirectionMap
+from .plane_map import PlaneMap
+from .item import Item
+from services import get_client
 
 
 class Room:

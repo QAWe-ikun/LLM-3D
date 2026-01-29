@@ -3,9 +3,8 @@
 
 包含 build 函数，用于构建房间布局
 """
-from Utils import SAMPLE_RATE
-from room import Room
-from item import Item
+from utils import SAMPLE_RATE
+from models import Room, Item
 
 
 def build(

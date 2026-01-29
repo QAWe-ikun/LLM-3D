@@ -149,7 +149,7 @@ def sample(mesh, vertex_colors, dirt: direction):
 
     返回: distance_map 对象
     """
-    from distance_map import DistanceMap
+    from models.distance_map import DistanceMap
 
     vertices = mesh.vertices
 

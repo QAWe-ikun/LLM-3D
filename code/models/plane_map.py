@@ -3,9 +3,9 @@
 
 包含 PlaneMap 类，表示某个方向上的一个平面及其上的物体
 """
-from Utils import direction
-from distance_map import DistanceMap
-from item import Item
+from utils import direction
+from .distance_map import DistanceMap
+from .item import Item
 
 
 class PlaneMap:
