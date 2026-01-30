@@ -63,10 +63,10 @@ class Room:
             self.direction_map_dict[dirt] = DirectionMap(dirt=dirt)
 
             # 根据方向确定平面的位置、尺寸和初始距离
-            if dirt == direction.ceil:
+            if dirt == direction.floor:
                 # 地板：xy平面，位置在底部，初始距离为房间高度
                 plane_loc = [x, y, z, length_samples, width_samples, height_samples]
-            elif dirt == direction.floor:
+            elif dirt == direction.ceil:
                 # 天花板：xy平面，位置在顶部，初始距离为房间高度
                 plane_loc = [x, y, z + height, length_samples, width_samples, height_samples]
             elif dirt == direction.left:
@@ -167,12 +167,12 @@ class Room:
 
             # 如果没有匹配到，默认选择 floor（地板）
             print(f"  ⚠ LLM返回的方向 '{direction_name}' 无效，使用默认方向 floor")
-            return self.direction_map_dict[direction.ceil]
+            return self.direction_map_dict[direction.floor]
 
         except Exception as e:
             # 如果LLM调用失败，默认选择 floor（地板）
             print(f"  ⚠ LLM调用失败: {e}，使用默认方向 floor")
-            return self.direction_map_dict[direction.ceil]
+            return self.direction_map_dict[direction.floor]
 
     def update_direction(self, new_item: Item) -> None:
         """

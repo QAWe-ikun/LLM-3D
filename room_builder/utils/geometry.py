@@ -183,7 +183,7 @@ def sample(mesh, vertex_colors, dirt: direction):
     if dirt == direction.floor or dirt == direction.ceil:
         # 投影到XY平面，深度轴是Z
         plane_axis1, plane_axis2, depth_axis = 0, 1, 2
-        ray_direction = np.array([0, 0, -1 if dirt == direction.floor else 1])
+        ray_direction = np.array([0, 0, 1 if dirt == direction.floor else -1])
         origin_z = z if dirt == direction.ceil else z + height
         origin = [x, y, origin_z]
         min_coord1, min_coord2 = x, y
