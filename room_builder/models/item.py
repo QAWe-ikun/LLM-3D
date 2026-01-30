@@ -85,9 +85,9 @@ class Item:
             # 根据方向计算距离图的原点位置
             temp_location = list(location)  # 转换为list以便修改
 
-            if dirt == direction.up or dirt == direction.down:
+            if dirt == direction.floor or dirt == direction.ceil:
                 # 上下方向：调整z坐标
-                z = self.z if dirt == direction.down else self.z + self.height
+                z = self.z if dirt == direction.ceil else self.z + self.height
                 temp_location[2] = z
             elif dirt == direction.left or dirt == direction.right:
                 # 左右方向：调整x坐标

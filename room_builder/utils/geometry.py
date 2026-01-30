@@ -5,8 +5,8 @@ from enum import Enum
 from ..config import DEFAULT_SAMPLE_INTERVAL as SAMPLE_RATE
 
 class direction(Enum):
-    up = 0
-    down = 5
+    floor = 0
+    ceil = 5
     left = 1
     right = 4
     forward = 2
@@ -180,11 +180,11 @@ def sample(mesh, vertex_colors, dirt: direction):
     height = np.max(vertices[:, 2]) - np.min(vertices[:, 2])
 
     # 根据方向确定投影平面和深度轴
-    if dirt == direction.up or dirt == direction.down:
+    if dirt == direction.floor or dirt == direction.ceil:
         # 投影到XY平面，深度轴是Z
         plane_axis1, plane_axis2, depth_axis = 0, 1, 2
-        ray_direction = np.array([0, 0, -1 if dirt == direction.up else 1])
-        origin_z = z if dirt == direction.down else z + height
+        ray_direction = np.array([0, 0, -1 if dirt == direction.floor else 1])
+        origin_z = z if dirt == direction.ceil else z + height
         origin = [x, y, origin_z]
         min_coord1, min_coord2 = x, y
         plane_length, plane_width, plane_height = length, width, height

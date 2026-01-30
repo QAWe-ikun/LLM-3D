@@ -97,7 +97,7 @@ class DistanceMap:
         offset_z = abs(round((cover_distance_map.z - self.z) / SAMPLE_RATE))
 
         # 根据 cover_distance_map 的方向确定平面偏移和深度偏移
-        if cover_distance_map.dirt == direction.up or cover_distance_map.dirt == direction.down:
+        if cover_distance_map.dirt == direction.floor or cover_distance_map.dirt == direction.ceil:
             # XY平面投影，Z为深度
             plane_offset_1 = offset_x
             plane_offset_2 = offset_y
