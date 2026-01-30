@@ -41,9 +41,8 @@ class DirectionMap:
 
         # 构造提示词，让LLM判断是否应该添加新平面
         existing_planes_info = []
-        for i, plane in enumerate(self.plane_map_list):
+        for plane in self.plane_map_list:
             plane_info = {
-                "平面编号": i,
                 "物体数量": len(plane.item_list),
                 "物体列表": plane.carry,
                 "物体描述": plane.description
@@ -51,8 +50,6 @@ class DirectionMap:
             existing_planes_info.append(plane_info)
 
         new_plane_info = {
-            "物体数量": len(new_plane_map.item_list),
-            "物体列表": new_plane_map.carry,
             "物体描述": new_plane_map.description
         }
 
@@ -66,9 +63,8 @@ class DirectionMap:
 {json.dumps(new_plane_info, ensure_ascii=False, indent=2)}
 
 请判断是否应该添加这个新平面。考虑因素：
-1. 空间合理性：该方向是否还有空间容纳新平面
-2. 语义相关性：新平面上的物体与现有平面的物体是否应该分开放置
-3. 功能分区：是否需要创建新的功能区域
+1. 语义相关性：新平面上的物体与现有平面的物体是否应该分开放置
+2. 功能分区：是否需要创建新的功能区域
 
 请只回答 "是" 或 "否"，不要有其他内容。
 """

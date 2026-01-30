@@ -4,7 +4,7 @@
 包含 Room 类，表示一个完整的3D场景空间
 """
 import json
-from utils import direction, SAMPLE_RATE
+from utils import direction, SAMPLE_RATE, find_opposite_direction
 from .direction_map import DirectionMap
 from .plane_map import PlaneMap
 from .item import Item
@@ -87,7 +87,7 @@ class Room:
                 plane_loc=plane_loc,
                 dirt=dirt,
                 carry=[],
-                description=[],
+                description=f"初始平面:{dirt.name}",
                 item_list=[],
                 initial_color=self.initial_color
             )
@@ -197,34 +197,123 @@ class Room:
         print(f"{'='*60}")
 
         # 1. 选择合适的方向
-        print(f"\n[步骤 1/6] 选择合适的方向...")
+        print(f"\n[步骤 1/7] 选择合适的方向...")
         direction_map = self.choice_direction_map(new_item)
         print(f"✓ 已选择方向: {direction_map.dirt.name}")
 
         # 2. 在该方向上选择合适的平面
-        print(f"\n[步骤 2/6] 在 {direction_map.dirt.name} 方向上选择合适的平面...")
+        print(f"\n[步骤 2/7] 在 {direction_map.dirt.name} 方向上选择合适的平面...")
         plane_map = direction_map.choice_plane_map(new_item)
         print(f"✓ 已选择平面，当前平面上有 {len(plane_map.item_list)} 个物体")
 
         # 3. 在平面上找到合适的位置
-        print(f"\n[步骤 3/6] 在平面上寻找合适的位置...")
+        print(f"\n[步骤 3/7] 在平面上寻找合适的位置...")
         location = plane_map.find_location(new_item)
         print(f"✓ 找到位置: ({location[0]:.2f}, {location[1]:.2f}, {location[2]:.2f})")
 
         # 4. 设置物体位置
-        print(f"\n[步骤 4/6] 设置物体位置...")
+        print(f"\n[步骤 4/7] 设置物体位置...")
         new_item.set_item_location(location)
         print(f"✓ 物体位置已设置")
 
         # 5. 将物体添加到平面
-        print(f"\n[步骤 5/6] 将物体添加到平面...")
+        print(f"\n[步骤 5/7] 将物体添加到平面...")
         plane_map.add_item(new_item)
         print(f"✓ 物体已添加到平面，平面上现有 {len(plane_map.item_list)} 个物体")
 
         # 6. 更新所有方向的距离信息
-        print(f"\n[步骤 6/6] 更新所有方向的距离信息...")
+        print(f"\n[步骤 6/7] 更新所有方向的距离信息...")
         self.update_direction(new_item)
         print(f"✓ 距离信息已更新")
+
+        # 7. 判断是否应该新增平面
+        print(f"\n[步骤 7/7] 判断是否需要新增平面...")
+
+        # 根据方向确定新平面的位置和尺寸
+        if direction_map.dirt == direction.down:
+            # 地板方向：新平面在物体顶部，xy平面
+            plane_loc = [
+                new_item.x,
+                new_item.y,
+                new_item.z + new_item.height,
+                new_item.length_sample_num,
+                new_item.width_sample_num,
+                new_item.height_sample_num
+            ]
+        elif direction_map.dirt == direction.up:
+            # 天花板方向：新平面在物体底部，xy平面
+            plane_loc = [
+                new_item.x,
+                new_item.y,
+                new_item.z,
+                new_item.length_sample_num,
+                new_item.width_sample_num,
+                new_item.height_sample_num
+            ]
+        elif direction_map.dirt == direction.left:
+            # 左墙方向：新平面在物体右侧，yz平面
+            plane_loc = [
+                new_item.x + new_item.length,
+                new_item.y,
+                new_item.z,
+                new_item.width_sample_num,
+                new_item.height_sample_num,
+                new_item.length_sample_num
+            ]
+        elif direction_map.dirt == direction.right:
+            # 右墙方向：新平面在物体左侧，yz平面
+            plane_loc = [
+                new_item.x,
+                new_item.y,
+                new_item.z,
+                new_item.width_sample_num,
+                new_item.height_sample_num,
+                new_item.length_sample_num
+            ]
+        elif direction_map.dirt == direction.backward:
+            # 后墙方向：新平面在物体前侧，xz平面
+            plane_loc = [
+                new_item.x,
+                new_item.y + new_item.width,
+                new_item.z,
+                new_item.length_sample_num,
+                new_item.height_sample_num,
+                new_item.width_sample_num
+            ]
+        else:  # direction.forward
+            # 前墙方向：新平面在物体后侧，xz平面
+            plane_loc = [
+                new_item.x,
+                new_item.y,
+                new_item.z,
+                new_item.length_sample_num,
+                new_item.height_sample_num,
+                new_item.width_sample_num
+            ]
+
+        # 创建新的平面对象
+        new_plane = PlaneMap(
+            plane_loc=plane_loc,
+            dirt=direction_map.dirt,
+            carry=[],
+            description=new_item.item_description,
+            item_list=[],
+            initial_color=self.initial_color
+        )
+
+        # 初始化新平面的颜色图
+        new_plane.init_color_map(
+            new_item.get_distance_map(
+                find_opposite_direction(direction_map.dirt)).get_color_map())
+
+        new_dist_map = plane_map.get_distance_map() - new_item.get_distance_map(direction_map.dirt).get_dist_map()
+        
+        # 初始化新平面的距离图
+        new_plane.init_dist_map(new_dist_map)       
+
+        # 调用 add_plane_map 进行判断和添加
+        direction_map.add_plane_map(new_plane)
+        print(f"✓ 平面判断完成")
 
         print(f"\n{'='*60}")
         print(f"物体 {new_item.item_name} 添加完成！")

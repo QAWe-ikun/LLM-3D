@@ -3,6 +3,7 @@
 
 包含 PlaneMap 类，表示某个方向上的一个平面及其上的物体
 """
+import numpy as np
 from utils import direction, SAMPLE_RATE, find_opposite_direction
 from .distance_map import DistanceMap
 from .item import Item
@@ -17,7 +18,7 @@ class PlaneMap:
         plane_loc: list[float],
         dirt: direction,
         carry: list[str],
-        description: list[str],
+        description: str,
         item_list: list[Item],
         initial_color: tuple[int, int, int] = (255, 255, 255)
     ):
@@ -28,7 +29,7 @@ class PlaneMap:
             plane_loc: 平面位置参数 [x, y, z, height, width, initial_distance]
             dirt: 平面的方向
             carry: 平面上物体的名称列表
-            description: 平面上物体的描述列表
+            description: 平面的描述
             item_list: 平面上的物体对象列表
             initial_color: 初始颜色RGB值（默认为白色(255, 255, 255)）
         """
@@ -61,6 +62,42 @@ class PlaneMap:
             方向枚举值
         """
         return self.dirt
+    
+    def get_distance_map(self) -> np.ndarray:
+        """
+        获取平面的距离图对象
+
+        返回:
+            距离图数组
+        """
+        return self.distance.get_dist_map()
+    
+    def get_color_map(self) -> np.ndarray:
+        """
+        获取平面的颜色图数组
+
+        返回:
+            颜色图数组
+        """
+        return self.distance.get_color_map()
+
+    def init_color_map(self, init_color_map: np.ndarray) -> None:
+        """
+        初始化平面的颜色图为默认颜色
+
+        参数:
+            init_color_map: 初始颜色图数组
+        """
+        self.distance.set_color_map(init_color_map)
+
+    def init_dist_map(self, init_dist_map: np.ndarray) -> None:
+        """
+        初始化平面的距离图为默认距离
+
+        参数:
+            init_dist_map: 初始距离图数组
+        """
+        self.distance.set_dist_map(init_dist_map)
 
     def update_distance(self, new_item: Item) -> None:
         """
@@ -99,7 +136,6 @@ class PlaneMap:
             new_item: 要添加的物体对象
         """
         self.carry.append(new_item.item_name)
-        self.description.append(new_item.item_description)
         self.item_list.append(new_item)
 
         # 更新平面的距离图

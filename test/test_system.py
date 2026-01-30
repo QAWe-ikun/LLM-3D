@@ -123,7 +123,7 @@ def test_plane_map():
         plane_loc=plane_loc,
         dirt=direction.down,
         carry=[],
-        description=[],
+        description="测试平面",
         item_list=[],
         initial_color=(200, 200, 200),
         
