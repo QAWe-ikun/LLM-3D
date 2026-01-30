@@ -65,22 +65,22 @@ class Room:
             # 根据方向确定平面的位置、尺寸和初始距离
             if dirt == direction.down:
                 # 地板：xy平面，位置在底部，初始距离为房间高度
-                plane_loc = [x, y, z, length_samples, width_samples, height]
+                plane_loc = [x, y, z, length_samples, width_samples, height_samples]
             elif dirt == direction.up:
                 # 天花板：xy平面，位置在顶部，初始距离为房间高度
-                plane_loc = [x, y, z + height, length_samples, width_samples, height]
+                plane_loc = [x, y, z + height, length_samples, width_samples, height_samples]
             elif dirt == direction.left:
                 # 左墙：yz平面，位置在左侧，初始距离为房间长度
-                plane_loc = [x, y, z, width_samples, height_samples, length]
+                plane_loc = [x, y, z, width_samples, height_samples, length_samples]
             elif dirt == direction.right:
                 # 右墙：yz平面，位置在右侧，初始距离为房间长度
-                plane_loc = [x + length, y, z, width_samples, height_samples, length]
+                plane_loc = [x + length, y, z, width_samples, height_samples, length_samples]
             elif dirt == direction.backward:
                 # 后墙：xz平面，位置在后侧，初始距离为房间宽度
-                plane_loc = [x, y, z, length_samples, height_samples, width]
+                plane_loc = [x, y, z, length_samples, height_samples, width_samples]
             else:  # direction.forward
                 # 前墙：xz平面，位置在前侧，初始距离为房间宽度
-                plane_loc = [x, y + width, z, length_samples, height_samples, width]
+                plane_loc = [x, y + width, z, length_samples, height_samples, width_samples]
 
             # 创建初始平面（空的，没有物体）
             initial_plane = PlaneMap(

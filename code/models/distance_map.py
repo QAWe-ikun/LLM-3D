@@ -19,7 +19,7 @@ class DistanceMap:
         z: float,
         height: int,
         width: int,
-        initial_distance: float = 0.0,
+        initial_distance: int = 0,
         initial_color: tuple[int, int, int] = (255, 255, 255)
     ):
         """
@@ -30,7 +30,7 @@ class DistanceMap:
             x, y, z: 距离平面原点的坐标
             height: 距离图的高度（采样点数）
             width: 距离图的宽度（采样点数）
-            initial_distance: 初始距离值（默认为0）
+            initial_distance: 初始高度（默认为0）
             initial_color: 初始颜色RGB值（默认为白色(255, 255, 255)）
         """
         self.dirt = dirt
@@ -79,18 +79,22 @@ class DistanceMap:
         self.y = location[1]
         self.z = location[2]
 
-    def update(self, cover_distance_map: 'DistanceMap', color_threshold: int = 5) -> None:
+    def update(self, 
+               cover_distance_map: 'DistanceMap',
+               cover_color_map: 'DistanceMap',
+               cover_threshold: int = 5) -> None:
         """
         更新距离图，根据覆盖距离图的位置进行局部更新
 
         参数:
-            cover_distance_map: 覆盖的距离图对象
-            color_threshold: 颜色更新阈值（网格点数量），当距离小于此值时使用平面颜色，否则使用物体颜色
+            cover_distance_map: 平面相反方向的距离图对象，用于计算剩余可用空间
+            cover_color_map: 平面相同方向的距离图对象，用于得出覆盖的颜色
+            cover_threshold: 颜色更新阈值（网格点数量），当物体与平面的距离小于此值时颜色覆盖
         """
         # 计算覆盖距离图在当前距离图中的位置偏移（以采样点为单位）
-        offset_x = int(round((cover_distance_map.x - self.x) / SAMPLE_RATE))
-        offset_y = int(round((cover_distance_map.y - self.y) / SAMPLE_RATE))
-        offset_z = int(round((cover_distance_map.z - self.z) / SAMPLE_RATE))
+        offset_x = round((cover_distance_map.x - self.x) / SAMPLE_RATE)
+        offset_y = round((cover_distance_map.y - self.y) / SAMPLE_RATE)
+        offset_z = abs(round((cover_distance_map.z - self.z) / SAMPLE_RATE))
 
         # 根据 cover_distance_map 的方向确定平面偏移和深度偏移
         if cover_distance_map.dirt == direction.up or cover_distance_map.dirt == direction.down:
@@ -132,36 +136,21 @@ class DistanceMap:
             current_region: np.ndarray = self.distance[start_y:end_y, start_x:end_x].copy()
             cover_region: np.ndarray = cover_data[cover_start_y:cover_end_y, cover_start_x:cover_end_x]
 
-            # 计算 mask（考虑深度偏移后的距离比较）
-            mask = (cover_region + depth_offset) < current_region
-
             # 取最小值更新（表示最近的障碍物），同时加上深度偏移
-            # 使用 int32 避免溢出
-            cover_region_with_offset = cover_region.astype(np.int32) + depth_offset
-            updated_distance = np.minimum(current_region.astype(np.int32), cover_region_with_offset).astype(np.int16)
+            cover_region_with_offset = depth_offset - cover_region
+            updated_distance = np.minimum(current_region, cover_region_with_offset)
             self.distance[start_y:end_y, start_x:end_x] = updated_distance
 
             # 同样更新颜色图
-            cover_color = cover_distance_map.get_color_map()
-            if cover_color is not None and cover_color.size > 0 and np.any(mask):
+            if np.min(cover_region_with_offset) < cover_threshold:
                 # 根据距离阈值决定使用哪个颜色
                 # 当距离大于阈值时，使用平面颜色（保持不变）
                 # 当距离小于等于阈值时，使用物体颜色
-                updated_color: np.ndarray = self.color[start_y:end_y, start_x:end_x].copy()
-                cover_color_region: np.ndarray = cover_color[cover_start_y:cover_end_y, cover_start_x:cover_end_x]
+                cover_color = cover_color_map.get_color_map()
 
-                # 计算更新后的距离（与上面保持一致）
-                cover_region_with_offset = cover_region.astype(np.int32) + depth_offset
-                updated_distance = np.minimum(current_region.astype(np.int32), cover_region_with_offset).astype(np.int16)
-
-                # 创建颜色更新的 mask：距离大于等于阈值且需要更新的位置
-                color_update_mask = mask & (updated_distance >= color_threshold)
-
-                # 只在满足条件的位置更新为物体颜色
-                if np.any(color_update_mask):
-                    updated_color[color_update_mask] = cover_color_region[color_update_mask]
-
-                self.color[start_y:end_y, start_x:end_x] = updated_color
+                if cover_color is not None and cover_color.size > 0:
+                    cover_color_region: np.ndarray = cover_color[cover_start_y:cover_end_y, cover_start_x:cover_end_x]
+                    self.color[start_y:end_y, start_x:end_x] = cover_color_region
 
     def get_dist_map(self) -> np.ndarray:
         """

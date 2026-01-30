@@ -3,7 +3,7 @@
 
 包含 PlaneMap 类，表示某个方向上的一个平面及其上的物体
 """
-from utils import direction, SAMPLE_RATE
+from utils import direction, SAMPLE_RATE, find_opposite_direction
 from .distance_map import DistanceMap
 from .item import Item
 
@@ -49,7 +49,7 @@ class PlaneMap:
             plane_loc[2],
             int(plane_loc[3]),
             int(plane_loc[4]),
-            initial_distance=plane_loc[5],
+            initial_distance=int(plane_loc[5]),
             initial_color=initial_color
         )
 
@@ -62,14 +62,17 @@ class PlaneMap:
         """
         return self.dirt
 
-    def update_distance(self, distance: DistanceMap) -> None:
+    def update_distance(self, new_item: Item) -> None:
         """
         更新平面的距离图
 
         参数:
-            distance: 新的距离图对象（通常是物体的距离图）
+            new_item: 新的物体对像
         """
-        self.distance.update(cover_distance_map=distance)
+        if new_item not in self.item_list:
+            self.distance.update(
+                cover_distance_map=new_item.get_distance_map(dirt=find_opposite_direction(self.dirt)),
+                cover_color_map=new_item.get_distance_map(dirt=self.dirt))
 
     def find_location(self, new_item: Item) -> tuple[float, float, float]:
         """
@@ -100,4 +103,4 @@ class PlaneMap:
         self.item_list.append(new_item)
 
         # 更新平面的距离图
-        self.update_distance(new_item.get_distance_map(dirt=self.dirt))
+        self.update_distance(new_item)

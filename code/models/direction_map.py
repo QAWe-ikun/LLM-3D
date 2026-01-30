@@ -173,4 +173,4 @@ class DirectionMap:
             plane_dirt = plane.get_dirt()
             # 获取相反方向（物体对平面的影响方向）
             dirt = find_opposite_direction(plane_dirt)
-            plane.update_distance(new_item.get_distance_map(dirt=dirt))
+            plane.update_distance(new_item)
