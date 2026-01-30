@@ -90,19 +90,21 @@ from main import build
 ```python
 from main import build
 
-# 定义物体列表
+# 定义物体列表（物体名称, 物体描述, 理论体积(m³)）
 item_list = [
-    ("床", "双人床"),
-    ("桌子", "书桌"),
-    ("椅子", "办公椅")
+    ("床", "双人床", 2.0),
+    ("桌子", "书桌", 0.5),
+    ("椅子", "办公椅", 0.2)
 ]
 
 # 构建房间
+# 房间 GLB 尺寸为 5.0 x 4.0 x 3.0，理论体积为 60.0 m³
 room = build(
     room_type="卧室",
     length=5.0,
     width=4.0,
     height=3.0,
+    room_theoretical_volume=60.0,
     item_list=item_list
 )
 ```

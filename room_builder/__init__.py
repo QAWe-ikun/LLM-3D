@@ -11,8 +11,8 @@ room_builder 代码包
 
 快速开始：
     >>> from room_builder import build
-    >>> item_list = [("床", "双人床"), ("桌子", "书桌")]
-    >>> room = build("卧室", 5.0, 4.0, 3.0, item_list)
+    >>> item_list = [("床", "双人床", 2.0), ("桌子", "书桌", 0.5)]
+    >>> room = build("卧室", 5.0, 4.0, 3.0, 60.0, item_list)
 
 版本：0.1.0
 """

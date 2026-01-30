@@ -3,7 +3,8 @@
 
 包含 Item 类，表示3D场景中的一个物体
 """
-from ..utils import direction, find_glb_model, read_glb_vertices, get_model_size, sample
+
+from ..utils import direction, find_glb_model, read_glb_vertices, get_model_size, sample, normalize_glb
 from .distance_map import DistanceMap
 
 
@@ -11,28 +12,48 @@ class Item:
     """
     物体类，表示3D场景中的一个物体
     """
-    def __init__(self, item_name: str, item_description: str):
+    def __init__(
+        self,
+        item_name: str,
+        item_description: str,
+        theoretical_volume: float,
+        volume_rate: float
+    ):
         """
         初始化物体
 
         参数:
             item_name: 物体名称
             item_description: 物体描述信息
+            theoretical_volume: 物体在现实世界中的理论体积（立方米）
+            volunme_rate: GLB单位到真实世界的转换系数（GLB体积/真实体积）
         """
         self.item_name = item_name
         self.item_description = item_description
+        self.theoretical_volume = theoretical_volume
 
         # 加载GLB模型文件
         file_path = find_glb_model(item_name)
         vertices, colors, mesh = read_glb_vertices(file_path)
 
-        self.vertices = vertices
+        # 使用 normalize_glb 标准化顶点
+        # volunme_rate 已经从 build 函数传入，表示 GLB单位到真实世界的转换系数
+        normalized_vertices, center_point = normalize_glb(
+            vertices=vertices,
+            theoretical_volume=theoretical_volume,
+            volume_rate=volume_rate,
+            center=True
+        )
+
+        # 使用标准化后的顶点
+        self.vertices = normalized_vertices
         self.colors = colors
         self.mesh = mesh
+        self.center_point = center_point
 
-        # 获取模型尺寸和采样参数
+        # 获取标准化后的模型尺寸和采样参数
         x, y, z, length, width, height, length_sample_num, width_sample_num, height_sample_num = get_model_size(
-            item_vertices=vertices
+            item_vertices=normalized_vertices
         )
 
         # 边界框起点坐标

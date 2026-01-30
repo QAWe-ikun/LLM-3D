@@ -98,14 +98,14 @@ def get_model_size(item_vertices):
 
     return x, y, z, length, width, height, length_sample_num, width_sample_num, height_sample_num
 
-def normalize_glb(vertices, theoretical_volume: float, actual_volume: float, center: bool = True) -> tuple:
+def normalize_glb(vertices, theoretical_volume: float, volume_rate: float, center: bool = True) -> tuple:
     """
     归一化GLB模型的顶点坐标，使其符合真实世界的尺寸比例
 
     参数:
         vertices: numpy数组，形状为(N, 3)的顶点坐标
         theoretical_volume: 理论体积（立方米），表示模型在现实世界中的体积
-        actual_volume: GLB单位转换系数，表示现实世界的一立方米对应GLB空间中的体积
+        volume_rate: GLB单位转换系数，表示现实世界的一立方米对应GLB空间中的体积
         center: 是否将模型中心移到原点，默认为True
 
     返回:
@@ -116,7 +116,7 @@ def normalize_glb(vertices, theoretical_volume: float, actual_volume: float, cen
     示例:
         如果一个立方体在现实中是1m³，GLB体积中=0.01，则：
         theoretical_volume = 1.0
-        actual_volume = 0.01
+        volume_rate = 0.01
     """
     # 确保输入为float64类型，提高计算精度
     vertices = np.array(vertices, dtype=np.float64)
@@ -137,10 +137,10 @@ def normalize_glb(vertices, theoretical_volume: float, actual_volume: float, cen
 
     # 计算缩放因子
     # theoretical_volume: 真实世界体积（m³）
-    # actual_volume: 米到GLB单位的转换系数
+    # volume_rate: 米到GLB单位的转换系数
     # current_volume: GLB空间中的当前体积
     # 目标：将GLB模型缩放到真实世界尺寸
-    volume_ratio = theoretical_volume * actual_volume / current_volume
+    volume_ratio = theoretical_volume * volume_rate / current_volume
     scale_factor = np.cbrt(volume_ratio)  # 体积比的立方根得到线性缩放因子
 
     # 应用缩放
@@ -168,7 +168,7 @@ def sample(mesh, vertex_colors, dirt: direction):
 
     返回: distance_map 对象
     """
-    from models.distance_map import DistanceMap
+    from ..models.distance_map import DistanceMap
 
     vertices = mesh.vertices
 

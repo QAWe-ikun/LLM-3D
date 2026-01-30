@@ -10,6 +10,7 @@ from .geometry import (
     get_model_size,
     sample,
     find_opposite_direction,
+    normalize_glb,
     SAMPLE_RATE
 )
 
@@ -20,5 +21,6 @@ __all__ = [
     'get_model_size',
     'sample',
     'find_opposite_direction',
+    'normalize_glb',
     'SAMPLE_RATE',
 ]

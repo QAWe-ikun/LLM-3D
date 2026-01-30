@@ -19,13 +19,15 @@ def test_build_basic():
     print("="*60)
 
     # 创建一个简单的房间，添加一个物体
-    item_list = [("桌子", "一张木质书桌")]
+    # 房间 GLB 尺寸为 5.0 x 4.0 x 3.0 = 60.0，理论体积为 60.0 m³
+    item_list = [("桌子", "一张木质书桌", 0.5)]
 
     room = build(
         room_type="书房",
         length=5.0,
         width=4.0,
         height=3.0,
+        room_theoretical_volume=60.0,
         item_list=item_list
     )
 
@@ -45,6 +47,7 @@ def test_build_basic():
     assert len(items) == 1, "应该有 1 个物体"
     assert items[0].item_name == "桌子", "物体名称应该是'桌子'"
     assert items[0].item_description == "一张木质书桌", "物体描述应该是'一张木质书桌'"
+    assert items[0].theoretical_volume == 0.5, "物体理论体积应该是 0.5 m³"
 
     print("[PASS] 测试通过：build 函数基本功能正常")
 
@@ -56,10 +59,11 @@ def test_build_multiple_items():
     print("="*60)
 
     # 创建一个房间，添加多个物体
+    # 房间 GLB 尺寸为 6.0 x 5.0 x 3.0 = 90.0，理论体积为 90.0 m³
     item_list = [
-        ("床", "双人床"),
-        ("桌子", "书桌"),
-        ("椅子", "办公椅")
+        ("床", "双人床", 2.0),
+        ("桌子", "书桌", 0.5),
+        ("椅子", "办公椅", 0.2)
     ]
 
     room = build(
@@ -67,6 +71,7 @@ def test_build_multiple_items():
         length=6.0,
         width=5.0,
         height=3.0,
+        room_theoretical_volume=90.0,
         item_list=item_list
     )
 
@@ -92,13 +97,15 @@ def test_build_custom_position():
     print("测试 3: 自定义房间位置")
     print("="*60)
 
-    item_list = [("沙发", "三人沙发")]
+    # 房间 GLB 尺寸为 7.0 x 6.0 x 3.5 = 147.0，理论体积为 147.0 m³
+    item_list = [("沙发", "三人沙发", 1.5)]
 
     room = build(
         room_type="客厅",
         length=7.0,
         width=6.0,
         height=3.5,
+        room_theoretical_volume=147.0,
         item_list=item_list,
         x=10.0,
         y=20.0,
@@ -119,7 +126,8 @@ def test_build_custom_color():
     print("测试 4: 自定义初始颜色")
     print("="*60)
 
-    item_list = [("柜子", "衣柜")]
+    # 房间 GLB 尺寸为 5.0 x 4.0 x 3.0 = 60.0，理论体积为 60.0 m³
+    item_list = [("柜子", "衣柜", 1.0)]
 
     # 使用浅灰色作为初始颜色
     custom_color = (200, 200, 200)
@@ -129,6 +137,7 @@ def test_build_custom_color():
         length=5.0,
         width=4.0,
         height=3.0,
+        room_theoretical_volume=60.0,
         item_list=item_list,
         initial_color=custom_color
     )
@@ -146,11 +155,13 @@ def test_build_empty_room():
     print("="*60)
 
     # 创建一个空房间
+    # 房间 GLB 尺寸为 3.0 x 3.0 x 2.5 = 22.5，理论体积为 22.5 m³
     room = build(
         room_type="储藏室",
         length=3.0,
         width=3.0,
         height=2.5,
+        room_theoretical_volume=22.5,
         item_list=[]
     )
 
