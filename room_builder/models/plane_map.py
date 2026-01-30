@@ -140,3 +140,13 @@ class PlaneMap:
 
         # 更新平面的距离图
         self.update_distance(new_item)
+
+    def update_color(self, new_item: Item) -> None:
+        """
+        更新平面的颜色图
+
+        参数:
+            new_item: 新的物体对像
+        """
+        self.distance.update_color(
+            cover_color_map=new_item.get_distance_map(dirt=self.dirt))

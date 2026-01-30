@@ -181,8 +181,9 @@ class Room:
         参数:
             new_item: 新添加的物体
         """
-        for dirt_map in self.direction_map_dict.values():
-            dirt_map.update_plane(new_item)
+        for dirt, dirt_map in self.direction_map_dict.items():
+            if dirt != new_item.get_distance_map(dirt).dirt:
+                dirt_map.update_plane(new_item)
 
     def create_and_add_plane_from_item(self, new_item: Item, direction_map: DirectionMap, plane_map: PlaneMap) -> None:
         """
@@ -319,8 +320,9 @@ class Room:
         print(f"[OK] 物体已添加到平面，平面上现有 {len(plane_map.item_list)} 个物体")
 
         # 6. 更新所有方向的距离信息
-        print(f"\n[步骤 6/7] 更新所有方向的距离信息...")
+        print(f"\n[步骤 6/7] 更新所有其他方向的距离信息...")
         self.update_direction(new_item)
+        self.direction_map_dict[new_item.get_distance_map(direction_map.dirt).dirt].update_base_plane(new_item)
         print(f"[OK] 距离信息已更新")
 
         # 7. 判断是否应该新增平面

@@ -165,7 +165,17 @@ class DirectionMap:
             new_item: 新添加的物体
         """
         for plane in self.plane_map_list:
-            plane_dirt = plane.get_dirt()
-            # 获取相反方向（物体对平面的影响方向）
-            dirt = find_opposite_direction(plane_dirt)
             plane.update_distance(new_item)
+
+    def update_base_plane(self, new_item: Item) -> None:
+        """
+        更新基础平面的距离信息
+
+        参数:
+            new_item: 新添加的物体
+        """
+        if len(self.plane_map_list) == 0:
+            raise ValueError(f"{self.dirt.name} 方向没有可用的平面")
+        # 第一个平面是基础平面
+        base_plane = self.plane_map_list[0]
+        base_plane.update_distance(new_item)

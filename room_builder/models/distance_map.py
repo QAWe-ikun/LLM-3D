@@ -94,24 +94,24 @@ class DistanceMap:
         # 计算覆盖距离图在当前距离图中的位置偏移（以采样点为单位）
         offset_x = round((cover_distance_map.x - self.x) / SAMPLE_RATE)
         offset_y = round((cover_distance_map.y - self.y) / SAMPLE_RATE)
-        offset_z = abs(round((cover_distance_map.z - self.z) / SAMPLE_RATE))
+        offset_z = round((cover_distance_map.z - self.z) / SAMPLE_RATE)
 
         # 根据 cover_distance_map 的方向确定平面偏移和深度偏移
         if cover_distance_map.dirt == direction.floor or cover_distance_map.dirt == direction.ceil:
             # XY平面投影，Z为深度
             plane_offset_1 = offset_x
             plane_offset_2 = offset_y
-            depth_offset = offset_z
+            depth_offset = abs(offset_z)
         elif cover_distance_map.dirt == direction.left or cover_distance_map.dirt == direction.right:
             # YZ平面投影，X为深度
             plane_offset_1 = offset_y
             plane_offset_2 = offset_z
-            depth_offset = offset_x
+            depth_offset = abs(offset_x)
         else:  # forward or backward
             # XZ平面投影，Y为深度
             plane_offset_1 = offset_x
             plane_offset_2 = offset_z
-            depth_offset = offset_y
+            depth_offset = abs(offset_y)
 
         # 获取覆盖距离图的数据
         cover_data = cover_distance_map.get_dist_map()
@@ -151,6 +151,56 @@ class DistanceMap:
                 if cover_color is not None and cover_color.size > 0:
                     cover_color_region: np.ndarray = cover_color[cover_start_y:cover_end_y, cover_start_x:cover_end_x]
                     self.color[start_y:end_y, start_x:end_x] = cover_color_region
+
+    def update_color(self, 
+                     cover_color_map: 'DistanceMap') -> None:
+        """
+        更新颜色图，根据覆盖颜色图的位置进行局部更新
+        参数:
+            cover_color_map: 平面相同方向的距离图对象，用于得出覆盖的颜色
+        """
+        # 计算覆盖颜色图在当前颜色图中的位置偏移（以采样点为单位）
+        offset_x = round((cover_color_map.x - self.x) / SAMPLE_RATE)
+        offset_y = round((cover_color_map.y - self.y) / SAMPLE_RATE)    
+        offset_z = round((cover_color_map.z - self.z) / SAMPLE_RATE)
+
+        # 根据 cover_color_map 的方向确定平面偏移和深度偏移
+        if cover_color_map.dirt == direction.floor or cover_color_map.dirt == direction.ceil:
+            # XY平面投影，Z为深度
+            plane_offset_1 = offset_x
+            plane_offset_2 = offset_y
+        elif cover_color_map.dirt == direction.left or cover_color_map.dirt == direction.right:
+            # YZ平面投影，X为深度
+            plane_offset_1 = offset_y
+            plane_offset_2 = offset_z
+        else:  # forward or backward
+            # XZ平面投影，Y为深度
+            plane_offset_1 = offset_x
+            plane_offset_2 = offset_z
+
+        # 获取覆盖颜色图的数据
+        cover_color_data = cover_color_map.get_color_map()
+        cover_height, cover_width, _ = cover_color_data.shape
+
+        # 计算重叠区域
+        # 在当前颜色图中的起始和结束位置
+        start_y = max(0, plane_offset_2)
+        start_x = max(0, plane_offset_1)
+        end_y = min(self.height, plane_offset_2 + cover_height)
+        end_x = min(self.width, plane_offset_1 + cover_width)
+
+        # 如果有重叠区域，进行更新
+        if start_y < end_y and start_x < end_x:
+
+            # 在覆盖颜色图中的起始和结束位置
+            cover_start_y = max(0, -plane_offset_2)
+            cover_start_x = max(0, -plane_offset_1)
+            cover_end_y = cover_start_y + (end_y - start_y)
+            cover_end_x = cover_start_x + (end_x - start_x)
+            
+            # 提取重叠区域
+            cover_color_region: np.ndarray = cover_color_data[cover_start_y:cover_end_y, cover_start_x:cover_end_x]
+            self.color[start_y:end_y, start_x:end_x] = cover_color_region
 
     def get_dist_map(self) -> np.ndarray:
         """
