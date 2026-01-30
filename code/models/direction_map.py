@@ -45,12 +45,12 @@ class DirectionMap:
             plane_info = {
                 "物体数量": len(plane.item_list),
                 "物体列表": plane.carry,
-                "物体描述": plane.description
+                "平面描述": plane.description
             }
             existing_planes_info.append(plane_info)
 
         new_plane_info = {
-            "物体描述": new_plane_map.description
+            "平面描述": new_plane_map.description
         }
 
         prompt = f"""
@@ -80,9 +80,8 @@ class DirectionMap:
             else:
                 print(f"  → LLM决策：不添加新平面，使用现有平面")
         except Exception as e:
-            # 如果LLM调用失败，默认添加
-            print(f"  ⚠ LLM调用失败: {e}，默认添加平面")
-            self.plane_map_list.append(new_plane_map)
+            # 如果LLM调用失败，默认不添加
+            print(f"  ⚠ LLM调用失败: {e}，默认不添加平面")
 
     def choice_plane_map(self, new_item: Item) -> PlaneMap:
         """
@@ -111,7 +110,7 @@ class DirectionMap:
                 "平面编号": i,
                 "物体数量": len(plane.item_list),
                 "物体列表": plane.carry,
-                "物体描述": plane.description
+                "平面描述": plane.description
             }
             planes_info.append(plane_info)
 

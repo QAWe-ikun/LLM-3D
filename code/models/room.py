@@ -296,7 +296,7 @@ class Room:
             plane_loc=plane_loc,
             dirt=direction_map.dirt,
             carry=[],
-            description=new_item.item_description,
+            description=f"物体{new_item.item_name}的{direction_map.dirt.name}平面，物体的具体描述{new_item.item_description}",
             item_list=[],
             initial_color=self.initial_color
         )
