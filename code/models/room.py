@@ -184,51 +184,18 @@ class Room:
         for dirt_map in self.direction_map_dict.values():
             dirt_map.update_plane(new_item)
 
-    def add_item(self, new_item: Item) -> None:
+    def create_and_add_plane_from_item(self, new_item: Item, direction_map: DirectionMap, plane_map: PlaneMap) -> None:
         """
-        向房间添加新物体
+        根据新添加的物体创建新平面并判断是否添加到方向图中
+
+        当一个物体被添加到某个方向的平面上后，该物体可能会在这个方向上形成一个新的"层"。
+        例如：在地板上放置桌子后，桌子顶部可以作为一个新的平面层。
 
         参数:
-            new_item: 要添加的物体对象
+            new_item: 新添加的物体
+            direction_map: 物体所在的方向图
+            plane_map: 物体所在的平面图
         """
-        print(f"\n{'='*60}")
-        print(f"开始添加物体: {new_item.item_name}")
-        print(f"物体描述: {new_item.item_description}")
-        print(f"{'='*60}")
-
-        # 1. 选择合适的方向
-        print(f"\n[步骤 1/7] 选择合适的方向...")
-        direction_map = self.choice_direction_map(new_item)
-        print(f"✓ 已选择方向: {direction_map.dirt.name}")
-
-        # 2. 在该方向上选择合适的平面
-        print(f"\n[步骤 2/7] 在 {direction_map.dirt.name} 方向上选择合适的平面...")
-        plane_map = direction_map.choice_plane_map(new_item)
-        print(f"✓ 已选择平面，当前平面上有 {len(plane_map.item_list)} 个物体")
-
-        # 3. 在平面上找到合适的位置
-        print(f"\n[步骤 3/7] 在平面上寻找合适的位置...")
-        location = plane_map.find_location(new_item)
-        print(f"✓ 找到位置: ({location[0]:.2f}, {location[1]:.2f}, {location[2]:.2f})")
-
-        # 4. 设置物体位置
-        print(f"\n[步骤 4/7] 设置物体位置...")
-        new_item.set_item_location(location)
-        print(f"✓ 物体位置已设置")
-
-        # 5. 将物体添加到平面
-        print(f"\n[步骤 5/7] 将物体添加到平面...")
-        plane_map.add_item(new_item)
-        print(f"✓ 物体已添加到平面，平面上现有 {len(plane_map.item_list)} 个物体")
-
-        # 6. 更新所有方向的距离信息
-        print(f"\n[步骤 6/7] 更新所有方向的距离信息...")
-        self.update_direction(new_item)
-        print(f"✓ 距离信息已更新")
-
-        # 7. 判断是否应该新增平面
-        print(f"\n[步骤 7/7] 判断是否需要新增平面...")
-
         # 根据方向确定新平面的位置和尺寸
         if direction_map.dirt == direction.down:
             # 地板方向：新平面在物体顶部，xy平面
@@ -295,7 +262,7 @@ class Room:
         new_plane = PlaneMap(
             plane_loc=plane_loc,
             dirt=direction_map.dirt,
-            carry=[],
+            carry=[new_item.item_name],
             description=f"物体{new_item.item_name}的{direction_map.dirt.name}平面，物体的具体描述{new_item.item_description}",
             item_list=[],
             initial_color=self.initial_color
@@ -307,12 +274,58 @@ class Room:
                 find_opposite_direction(direction_map.dirt)).get_color_map())
 
         new_dist_map = plane_map.get_distance_map() - new_item.get_distance_map(direction_map.dirt).get_dist_map()
-        
+
         # 初始化新平面的距离图
-        new_plane.init_dist_map(new_dist_map)       
+        new_plane.init_dist_map(new_dist_map)
 
         # 调用 add_plane_map 进行判断和添加
         direction_map.add_plane_map(new_plane)
+
+    def add_item(self, new_item: Item) -> None:
+        """
+        向房间添加新物体
+
+        参数:
+            new_item: 要添加的物体对象
+        """
+        print(f"\n{'='*60}")
+        print(f"开始添加物体: {new_item.item_name}")
+        print(f"物体描述: {new_item.item_description}")
+        print(f"{'='*60}")
+
+        # 1. 选择合适的方向
+        print(f"\n[步骤 1/7] 选择合适的方向...")
+        direction_map = self.choice_direction_map(new_item)
+        print(f"✓ 已选择方向: {direction_map.dirt.name}")
+
+        # 2. 在该方向上选择合适的平面
+        print(f"\n[步骤 2/7] 在 {direction_map.dirt.name} 方向上选择合适的平面...")
+        plane_map = direction_map.choice_plane_map(new_item)
+        print(f"✓ 已选择平面，当前平面上有 {len(plane_map.item_list)} 个物体")
+
+        # 3. 在平面上找到合适的位置
+        print(f"\n[步骤 3/7] 在平面上寻找合适的位置...")
+        location = plane_map.find_location(new_item)
+        print(f"✓ 找到位置: ({location[0]:.2f}, {location[1]:.2f}, {location[2]:.2f})")
+
+        # 4. 设置物体位置
+        print(f"\n[步骤 4/7] 设置物体位置...")
+        new_item.set_item_location(location)
+        print(f"✓ 物体位置已设置")
+
+        # 5. 将物体添加到平面
+        print(f"\n[步骤 5/7] 将物体添加到平面...")
+        plane_map.add_item(new_item)
+        print(f"✓ 物体已添加到平面，平面上现有 {len(plane_map.item_list)} 个物体")
+
+        # 6. 更新所有方向的距离信息
+        print(f"\n[步骤 6/7] 更新所有方向的距离信息...")
+        self.update_direction(new_item)
+        print(f"✓ 距离信息已更新")
+
+        # 7. 判断是否应该新增平面
+        print(f"\n[步骤 7/7] 判断是否需要新增平面...")
+        self.create_and_add_plane_from_item(new_item, direction_map, plane_map)
         print(f"✓ 平面判断完成")
 
         print(f"\n{'='*60}")
