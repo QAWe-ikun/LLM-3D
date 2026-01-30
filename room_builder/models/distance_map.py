@@ -98,20 +98,21 @@ class DistanceMap:
 
         # 根据 cover_distance_map 的方向确定平面偏移和深度偏移
         if cover_distance_map.dirt == direction.floor or cover_distance_map.dirt == direction.ceil:
-            # XY平面投影，Z为深度
+            # XZ平面投影，Y为深度
             plane_offset_1 = offset_x
-            plane_offset_2 = offset_y
-            depth_offset = abs(offset_z)
+            plane_offset_2 = offset_z
+            depth_offset = abs(offset_y)
         elif cover_distance_map.dirt == direction.left or cover_distance_map.dirt == direction.right:
             # YZ平面投影，X为深度
             plane_offset_1 = offset_y
             plane_offset_2 = offset_z
             depth_offset = abs(offset_x)
         else:  # forward or backward
-            # XZ平面投影，Y为深度
+            # XY平面投影，Z为深度
             plane_offset_1 = offset_x
-            plane_offset_2 = offset_z
-            depth_offset = abs(offset_y)
+            plane_offset_2 = offset_y
+            depth_offset = abs(offset_z)
+
 
         # 获取覆盖距离图的数据
         cover_data = cover_distance_map.get_dist_map()
@@ -166,17 +167,17 @@ class DistanceMap:
 
         # 根据 cover_color_map 的方向确定平面偏移和深度偏移
         if cover_color_map.dirt == direction.floor or cover_color_map.dirt == direction.ceil:
-            # XY平面投影，Z为深度
+            # XZ平面投影，Y为深度
             plane_offset_1 = offset_x
-            plane_offset_2 = offset_y
+            plane_offset_2 = offset_z
         elif cover_color_map.dirt == direction.left or cover_color_map.dirt == direction.right:
             # YZ平面投影，X为深度
             plane_offset_1 = offset_y
             plane_offset_2 = offset_z
         else:  # forward or backward
-            # XZ平面投影，Y为深度
+            # XY平面投影，Z为深度
             plane_offset_1 = offset_x
-            plane_offset_2 = offset_z
+            plane_offset_2 = offset_y
 
         # 获取覆盖颜色图的数据
         cover_color_data = cover_color_map.get_color_map()

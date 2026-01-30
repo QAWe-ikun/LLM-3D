@@ -107,16 +107,16 @@ class Item:
             temp_location = list(location)  # 转换为list以便修改
 
             if dirt == direction.floor or dirt == direction.ceil:
-                # 上下方向：调整z坐标
-                z = self.z if dirt == direction.floor else self.z + self.height
-                temp_location[2] = z
+                # 上下方向：调整y坐标
+                y = self.y if dirt == direction.backward else self.y + self.width
+                temp_location[1] = y
             elif dirt == direction.left or dirt == direction.right:
                 # 左右方向：调整x坐标
                 x = self.x if dirt == direction.left else self.x + self.length
                 temp_location[0] = x
             else:  # forward or backward
-                # 前后方向：调整y坐标
-                y = self.y if dirt == direction.backward else self.y + self.width
-                temp_location[1] = y
+                # 前后方向：调整z坐标
+                z = self.z if dirt == direction.floor else self.z + self.height
+                temp_location[2] = z
 
             self.round_distance[dirt].move_dist_map(location=temp_location)

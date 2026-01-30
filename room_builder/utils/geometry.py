@@ -181,13 +181,13 @@ def sample(mesh, vertex_colors, dirt: direction):
 
     # 根据方向确定投影平面和深度轴
     if dirt == direction.floor or dirt == direction.ceil:
-        # 投影到XY平面，深度轴是Z
-        plane_axis1, plane_axis2, depth_axis = 0, 1, 2
-        ray_direction = np.array([0, 0, 1 if dirt == direction.floor else -1])
-        origin_z = z if dirt == direction.ceil else z + height
-        origin = [x, y, origin_z]
-        min_coord1, min_coord2 = x, y
-        plane_length, plane_width, plane_height = length, width, height
+        # 投影到XZ平面，深度轴是Y
+        plane_axis1, plane_axis2, depth_axis = 0, 2, 1
+        ray_direction = np.array([0, -1 if dirt == direction.forward else 1, 0])
+        origin_y = y if dirt == direction.backward else y + width
+        origin = [x, origin_y, z]
+        min_coord1, min_coord2 = x, z
+        plane_length, plane_width, plane_height = length, height, width
     elif dirt == direction.left or dirt == direction.right:
         # 投影到YZ平面，深度轴是X
         plane_axis1, plane_axis2, depth_axis = 1, 2, 0
@@ -197,13 +197,13 @@ def sample(mesh, vertex_colors, dirt: direction):
         min_coord1, min_coord2 = y, z
         plane_length, plane_width, plane_height = width, height, length
     else:  # forward or backward
-        # 投影到XZ平面，深度轴是Y
-        plane_axis1, plane_axis2, depth_axis = 0, 2, 1
-        ray_direction = np.array([0, -1 if dirt == direction.forward else 1, 0])
-        origin_y = y if dirt == direction.backward else y + width
-        origin = [x, origin_y, z]
-        min_coord1, min_coord2 = x, z
-        plane_length, plane_width, plane_height = length, height, width
+        # 投影到XY平面，深度轴是Z
+        plane_axis1, plane_axis2, depth_axis = 0, 1, 2
+        ray_direction = np.array([0, 0, 1 if dirt == direction.floor else -1])
+        origin_z = z if dirt == direction.ceil else z + height
+        origin = [x, y, origin_z]
+        min_coord1, min_coord2 = x, y
+        plane_length, plane_width, plane_height = length, width, height
 
     # 根据sample_rate计算网格数量
     length = math.ceil(plane_length / SAMPLE_RATE)

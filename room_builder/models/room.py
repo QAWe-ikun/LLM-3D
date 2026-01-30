@@ -65,11 +65,11 @@ class Room:
 
             # 根据方向确定平面的位置、尺寸和初始距离
             if dirt == direction.floor:
-                # 地板：xy平面，位置在底部，初始距离为房间高度
-                plane_loc = [x, y, z, length_samples, width_samples, height_samples]
+                # 地板：xz平面，位置在底部，初始距离为房间高度
+                plane_loc = [x, y + width, z, length_samples, height_samples, width_samples]
             elif dirt == direction.ceil:
-                # 天花板：xy平面，位置在顶部，初始距离为房间高度
-                plane_loc = [x, y, z + height, length_samples, width_samples, height_samples]
+                # 天花板：xz平面，位置在顶部，初始距离为房间高度
+                plane_loc = [x, y, z, length_samples, height_samples, width_samples]
             elif dirt == direction.left:
                 # 左墙：yz平面，位置在左侧，初始距离为房间长度
                 plane_loc = [x, y, z, width_samples, height_samples, length_samples]
@@ -77,11 +77,11 @@ class Room:
                 # 右墙：yz平面，位置在右侧，初始距离为房间长度
                 plane_loc = [x + length, y, z, width_samples, height_samples, length_samples]
             elif dirt == direction.backward:
-                # 后墙：xz平面，位置在后侧，初始距离为房间宽度
-                plane_loc = [x, y, z, length_samples, height_samples, width_samples]
+                # 后墙：xy平面，位置在后侧，初始距离为房间宽度
+                plane_loc = [x, y, z + height, length_samples, width_samples, height_samples]                
             else:  # direction.forward
-                # 前墙：xz平面，位置在前侧，初始距离为房间宽度
-                plane_loc = [x, y + width, z, length_samples, height_samples, width_samples]
+                # 前墙：xy平面，位置在前侧，初始距离为房间宽度
+                plane_loc = [x, y, z, length_samples, width_samples, height_samples]
 
             # 创建初始平面（空的，没有物体）
             initial_plane = PlaneMap(
@@ -200,24 +200,24 @@ class Room:
         """
         # 根据方向确定新平面的位置和尺寸
         if direction_map.dirt == direction.ceil:
-            # 地板方向：新平面在物体顶部，xy平面
-            plane_loc = [
-                new_item.x,
-                new_item.y,
-                new_item.z + new_item.height,
-                new_item.length_sample_num,
-                new_item.width_sample_num,
-                new_item.height_sample_num
-            ]
-        elif direction_map.dirt == direction.floor:
-            # 天花板方向：新平面在物体底部，xy平面
+            # 地板方向：新平面在物体顶部，xz平面
             plane_loc = [
                 new_item.x,
                 new_item.y,
                 new_item.z,
                 new_item.length_sample_num,
-                new_item.width_sample_num,
-                new_item.height_sample_num
+                new_item.height_sample_num,
+                new_item.width_sample_num
+            ]
+        elif direction_map.dirt == direction.floor:
+            # 天花板方向：新平面在物体底部，xz平面
+            plane_loc = [
+                new_item.x,
+                new_item.y + new_item.width,
+                new_item.z,
+                new_item.length_sample_num,
+                new_item.height_sample_num,
+                new_item.width_sample_num
             ]
         elif direction_map.dirt == direction.left:
             # 左墙方向：新平面在物体右侧，yz平面
@@ -240,24 +240,24 @@ class Room:
                 new_item.length_sample_num
             ]
         elif direction_map.dirt == direction.backward:
-            # 后墙方向：新平面在物体前侧，xz平面
-            plane_loc = [
-                new_item.x,
-                new_item.y + new_item.width,
-                new_item.z,
-                new_item.length_sample_num,
-                new_item.height_sample_num,
-                new_item.width_sample_num
-            ]
-        else:  # direction.forward
-            # 前墙方向：新平面在物体后侧，xz平面
+            # 后墙方向：新平面在物体前侧，xy平面
             plane_loc = [
                 new_item.x,
                 new_item.y,
                 new_item.z,
                 new_item.length_sample_num,
-                new_item.height_sample_num,
-                new_item.width_sample_num
+                new_item.width_sample_num,
+                new_item.height_sample_num
+            ]
+        else:  # direction.forward
+            # 前墙方向：新平面在物体后侧，xy平面
+            plane_loc = [
+                new_item.x,
+                new_item.y,
+                new_item.z + new_item.height,
+                new_item.length_sample_num,
+                new_item.width_sample_num,
+                new_item.height_sample_num
             ]
 
         # 创建新的平面对象
