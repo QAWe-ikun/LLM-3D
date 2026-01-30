@@ -4,10 +4,10 @@
 包含 DirectionMap 类，管理某个方向上的所有平面图
 """
 import json
-from utils import direction, find_opposite_direction
+from ..utils import direction, find_opposite_direction
 from .plane_map import PlaneMap
 from .item import Item
-from services import get_client
+from ..services import get_client
 
 
 class DirectionMap:

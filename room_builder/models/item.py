@@ -3,7 +3,7 @@
 
 包含 Item 类，表示3D场景中的一个物体
 """
-from utils import direction, find_glb_model, read_glb_vertices, get_model_size, sample
+from ..utils import direction, find_glb_model, read_glb_vertices, get_model_size, sample
 from .distance_map import DistanceMap
 
 

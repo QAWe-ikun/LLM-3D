@@ -2,7 +2,7 @@ import math
 import trimesh
 import numpy as np
 from enum import Enum
-from config import DEFAULT_SAMPLE_INTERVAL as SAMPLE_RATE
+from ..config import DEFAULT_SAMPLE_INTERVAL as SAMPLE_RATE
 
 class direction(Enum):
     up = 0
@@ -17,9 +17,28 @@ def find_opposite_direction(dirt: direction) -> direction:
 
 def find_glb_model(model_name: str):
     """
-    TODO: connect with db
+    根据模型名称查找对应的GLB文件路径
+
+    参数:
+        model_name: 模型名称
+
+    返回:
+        GLB文件的路径
+
+    注意:
+        目前简单实现，返回固定的模型文件路径
+        TODO: 将来可以连接数据库，根据模型名称查找对应的文件
     """
-    pass
+    import os
+    # 获取项目根目录
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(os.path.dirname(current_dir))
+    model_path = os.path.join(project_root, "models", "0.glb")
+
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"模型文件不存在: {model_path}")
+
+    return model_path
 
 def read_glb_vertices(file_path):
     # 加载GLB文件

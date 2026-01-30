@@ -4,7 +4,7 @@
 包含 DistanceMap 类，用于存储和管理某个方向上的距离和颜色信息
 """
 import numpy as np
-from utils import direction, SAMPLE_RATE
+from ..utils import direction, SAMPLE_RATE
 
 
 class DistanceMap:

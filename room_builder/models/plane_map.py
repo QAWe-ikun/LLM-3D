@@ -4,7 +4,7 @@
 包含 PlaneMap 类，表示某个方向上的一个平面及其上的物体
 """
 import numpy as np
-from utils import direction, SAMPLE_RATE, find_opposite_direction
+from ..utils import direction, SAMPLE_RATE, find_opposite_direction
 from .distance_map import DistanceMap
 from .item import Item
 

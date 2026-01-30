@@ -3,8 +3,8 @@
 
 包含 build 函数，用于构建房间布局
 """
-from utils import SAMPLE_RATE
-from models import Room, Item
+from .utils import SAMPLE_RATE
+from .models import Room, Item
 
 
 def build(
@@ -58,4 +58,5 @@ def build(
         # 根据物体名称和描述创建Item对象
         item = Item(item_name=item_name, item_description=item_description)
         room.add_item(item)
+
     return room

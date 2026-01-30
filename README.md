@@ -3,7 +3,7 @@
 ## 目录结构
 
 ```
-code/
+room_builder/
 ├── models/              # 数据模型层
 │   ├── __init__.py     # 模型导出
 │   ├── distance_map.py # 距离图类
