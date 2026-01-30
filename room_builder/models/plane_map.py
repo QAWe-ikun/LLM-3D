@@ -63,9 +63,18 @@ class PlaneMap:
         """
         return self.dirt
     
-    def get_distance_map(self) -> np.ndarray:
+    def get_distance(self) -> DistanceMap:
         """
         获取平面的距离图对象
+
+        返回:
+            距离图对象
+        """
+        return self.distance
+    
+    def get_distance_map(self) -> np.ndarray:
+        """
+        获取平面的距离图数组
 
         返回:
             距离图数组

@@ -4,6 +4,7 @@
 包含 Room 类，表示一个完整的3D场景空间
 """
 import json
+import numpy as np
 from ..utils import direction, SAMPLE_RATE, find_opposite_direction
 from .direction_map import DirectionMap
 from .plane_map import PlaneMap
@@ -263,7 +264,7 @@ class Room:
         new_plane = PlaneMap(
             plane_loc=plane_loc,
             dirt=direction_map.dirt,
-            carry=[new_item.item_name],
+            carry=[],
             description=f"物体{new_item.item_name}的{direction_map.dirt.name}平面，物体的具体描述{new_item.item_description}",
             item_list=[],
             initial_color=self.initial_color
@@ -274,7 +275,51 @@ class Room:
             new_item.get_distance_map(
                 find_opposite_direction(direction_map.dirt)).get_color_map())
 
-        new_dist_map = plane_map.get_distance_map() - new_item.get_distance_map(direction_map.dirt).get_dist_map()
+        # 获取new_item的距离图对象和数据
+        item_dist_map_obj = new_item.get_distance_map(direction_map.dirt)
+        item_dist_map = item_dist_map_obj.get_dist_map()
+        item_height, item_width = item_dist_map.shape
+
+        # 创建一个与item_dist_map同样大小的数组，初始化为plane_map的初始距离
+        new_dist_map = np.full((item_height, item_width), 0, dtype=np.int16)
+
+        # 计算new_item在plane_map中的位置偏移（以采样点为单位）
+        offset_x = round((item_dist_map_obj.x - plane_map.get_distance().x) / SAMPLE_RATE)
+        offset_y = round((item_dist_map_obj.y - plane_map.get_distance().y) / SAMPLE_RATE)
+        offset_z = round((item_dist_map_obj.z - plane_map.get_distance().z) / SAMPLE_RATE)
+
+        # 根据方向确定平面偏移
+        if direction_map.dirt == direction.floor or direction_map.dirt == direction.ceil:
+            plane_offset_1 = offset_x
+            plane_offset_2 = offset_y
+        elif direction_map.dirt == direction.left or direction_map.dirt == direction.right:
+            plane_offset_1 = offset_y
+            plane_offset_2 = offset_z
+        else:
+            plane_offset_1 = offset_x
+            plane_offset_2 = offset_z
+
+        # 计算重叠区域
+        plane_dist_map = plane_map.get_distance_map()
+        plane_height, plane_width = plane_dist_map.shape
+
+        # 在plane_map中的起始和结束位置
+        plane_start_y = max(0, plane_offset_2)
+        plane_start_x = max(0, plane_offset_1)
+        plane_end_y = min(plane_height, plane_offset_2 + item_height)
+        plane_end_x = min(plane_width, plane_offset_1 + item_width)
+
+        # 在item中的起始和结束位置
+        item_start_y = max(0, -plane_offset_2)
+        item_start_x = max(0, -plane_offset_1)
+        item_end_y = item_start_y + (plane_end_y - plane_start_y)
+        item_end_x = item_start_x + (plane_end_x - plane_start_x)
+
+        # 如果有重叠区域，进行相减
+        if plane_start_y < plane_end_y and plane_start_x < plane_end_x:
+            plane_region = plane_dist_map[plane_start_y:plane_end_y, plane_start_x:plane_end_x]
+            item_region = item_dist_map[item_start_y:item_end_y, item_start_x:item_end_x]
+            new_dist_map[item_start_y:item_end_y, item_start_x:item_end_x] = plane_region - item_region
 
         # 初始化新平面的距离图
         new_plane.init_dist_map(new_dist_map)

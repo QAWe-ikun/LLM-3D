@@ -178,4 +178,5 @@ class DirectionMap:
             raise ValueError(f"{self.dirt.name} 方向没有可用的平面")
         # 第一个平面是基础平面
         base_plane = self.plane_map_list[0]
-        base_plane.update_distance(new_item)
+        if new_item not in base_plane.item_list:
+            base_plane.update_color(new_item)
