@@ -65,6 +65,7 @@ class Item:
         self.height_sample_num = height_sample_num
 
         # 计算各个方向的距离图
+        self.round_distance: dict[direction, DistanceMap] = {}
         self._get_round_distance()
 
     def _get_round_distance(self):
@@ -74,10 +75,8 @@ class Item:
         返回:
             字典，键为方向，值为对应的距离图对象
         """
-        round_distance = {}
         for dirt in direction:
-            round_distance[dirt] = sample(self.mesh, self.colors, dirt)
-        self.round_distance = round_distance
+            self.round_distance[dirt] = sample(self.mesh, self.colors, dirt)
 
     def get_distance_map(self, dirt: direction) -> DistanceMap:
         """

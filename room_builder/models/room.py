@@ -6,6 +6,10 @@
 import json
 import math
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # 设置非交互式后端，避免Tk错误
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 from ..utils import direction, SAMPLE_RATE, find_opposite_direction, align_to_sample_grid
 from .direction_map import DirectionMap
 from .plane_map import PlaneMap
@@ -176,7 +180,7 @@ class Room:
             print(f"  ⚠ LLM调用失败: {e}，使用默认方向 floor")
             return self.direction_map_dict[direction.floor]
 
-    def update_direction(self, new_item: Item) -> None:
+    def update_direction(self, new_item: Item, placed_dirt: direction) -> None:
         """
         更新所有方向图的距离信息
 
@@ -184,7 +188,7 @@ class Room:
             new_item: 新添加的物体
         """
         for dirt, dirt_map in self.direction_map_dict.items():
-            if dirt != new_item.get_distance_map(dirt).dirt:
+            if dirt != placed_dirt:
                 dirt_map.update_plane(new_item)
 
     def create_and_add_plane_from_item(self, new_item: Item, direction_map: DirectionMap, plane_map: PlaneMap) -> None:
@@ -384,8 +388,8 @@ class Room:
 
         # 6. 更新所有方向的距离信息
         print(f"\n[步骤 6/7] 更新所有其他方向的距离信息...")
-        self.update_direction(new_item)
-        self.direction_map_dict[new_item.get_distance_map(direction_map.dirt).dirt].update_base_plane(new_item)
+        self.update_direction(new_item, direction_map.dirt)
+        self.direction_map_dict[direction_map.dirt].update_base_plane(new_item)
         print(f"[OK] 距离信息已更新")
 
         # 7. 判断是否应该新增平面
@@ -397,6 +401,9 @@ class Room:
         print(f"物体 {new_item.item_name} 添加完成！")
         print(f"房间内现有 {self.get_item_count()} 个物体")
         print(f"{'='*60}\n")
+
+        # 可视化当前房间平面图
+        self.visualize_floor_plan()
 
     def get_all_items(self) -> list[Item]:
         """
@@ -419,3 +426,36 @@ class Room:
             物体数量
         """
         return len(self.get_all_items())
+
+    def visualize_floor_plan(self) -> None:
+        """
+        可视化房间的俯视平面图（从上往下看）
+        基于地板方向的color_map显示
+        """
+        # 设置中文字体
+        plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS']
+        plt.rcParams['axes.unicode_minus'] = False
+
+        # 获取地板方向的平面列表
+        floor_direction = self.direction_map_dict[direction.floor]
+        plane_map = floor_direction.plane_map_list[0]
+
+        # 获取该平面的颜色图
+        color_map = plane_map.distance.get_color_map()
+        dist_map = plane_map.distance.get_dist_map()
+        items = self.get_item_count()
+
+        import os
+        output_dir = 'output'
+        os.makedirs(output_dir, exist_ok=True)
+        plt.imshow(color_map)
+        filename = f'{output_dir}/floor_plan_{items}_items.png'
+        plt.savefig(filename, dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"平面图已保存: {filename}")
+
+        plt.imshow(dist_map)
+        filename = f'{output_dir}/floor_plan_{items}_items_dist.png'
+        plt.savefig(filename, dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"平面图已保存: {filename}")

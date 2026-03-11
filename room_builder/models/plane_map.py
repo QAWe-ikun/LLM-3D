@@ -169,16 +169,16 @@ class PlaneMap:
         grid_i, grid_j = best_location
 
         if self.dirt in [direction.floor, direction.ceil]:
-            world_x = self.distance.x + grid_i
-            world_z = self.distance.z + grid_j
+            world_x = self.distance.x + grid_j
+            world_z = self.distance.z + grid_i
             world_y = self.distance.y
         elif self.dirt in [direction.left, direction.right]:
-            world_y = self.distance.y + grid_i
-            world_z = self.distance.z + grid_j
+            world_y = self.distance.y + grid_j
+            world_z = self.distance.z + grid_i
             world_x = self.distance.x
         else:
-            world_x = self.distance.x + grid_i
-            world_y = self.distance.y + grid_j
+            world_x = self.distance.x + grid_j
+            world_y = self.distance.y + grid_i
             world_z = self.distance.z
 
         if self.dirt == direction.floor:
