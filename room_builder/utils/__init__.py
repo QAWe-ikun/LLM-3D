@@ -5,6 +5,7 @@
 """
 from .geometry import (
     direction,
+    align_to_sample_grid,
     find_glb_model,
     read_glb_vertices,
     get_model_size,
@@ -16,6 +17,7 @@ from .geometry import (
 
 __all__ = [
     'direction',
+    'align_to_sample_grid',
     'find_glb_model',
     'read_glb_vertices',
     'get_model_size',

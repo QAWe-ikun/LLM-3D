@@ -4,8 +4,9 @@
 包含 Room 类，表示一个完整的3D场景空间
 """
 import json
+import math
 import numpy as np
-from ..utils import direction, SAMPLE_RATE, find_opposite_direction
+from ..utils import direction, SAMPLE_RATE, find_opposite_direction, align_to_sample_grid
 from .direction_map import DirectionMap
 from .plane_map import PlaneMap
 from .item import Item
@@ -46,9 +47,9 @@ class Room:
         self.length = length
         self.width = width
         self.height = height
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = align_to_sample_grid(x)
+        self.y = align_to_sample_grid(y)
+        self.z = align_to_sample_grid(z)
         self.sample_interval = sample_interval
         self.initial_color = initial_color
 
@@ -66,22 +67,22 @@ class Room:
             # 根据方向确定平面的位置、尺寸和初始距离
             if dirt == direction.floor:
                 # 地板：xz平面，位置在底部，初始距离为房间高度
-                plane_loc = [x, y + width, z, length_samples, height_samples, width_samples]
+                plane_loc = [align_to_sample_grid(x), align_to_sample_grid(y), align_to_sample_grid(z), length_samples, height_samples, width_samples]
             elif dirt == direction.ceil:
                 # 天花板：xz平面，位置在顶部，初始距离为房间高度
-                plane_loc = [x, y, z, length_samples, height_samples, width_samples]
+                plane_loc = [align_to_sample_grid(x), align_to_sample_grid(y + width), align_to_sample_grid(z), length_samples, height_samples, width_samples]
             elif dirt == direction.left:
                 # 左墙：yz平面，位置在左侧，初始距离为房间长度
-                plane_loc = [x, y, z, width_samples, height_samples, length_samples]
+                plane_loc = [align_to_sample_grid(x), align_to_sample_grid(y), align_to_sample_grid(z), width_samples, height_samples, length_samples]
             elif dirt == direction.right:
                 # 右墙：yz平面，位置在右侧，初始距离为房间长度
-                plane_loc = [x + length, y, z, width_samples, height_samples, length_samples]
+                plane_loc = [align_to_sample_grid(x + length), align_to_sample_grid(y), align_to_sample_grid(z), width_samples, height_samples, length_samples]
             elif dirt == direction.backward:
                 # 后墙：xy平面，位置在后侧，初始距离为房间宽度
-                plane_loc = [x, y, z + height, length_samples, width_samples, height_samples]                
+                plane_loc = [align_to_sample_grid(x), align_to_sample_grid(y), align_to_sample_grid(z + height), length_samples, width_samples, height_samples]
             else:  # direction.forward
                 # 前墙：xy平面，位置在前侧，初始距离为房间宽度
-                plane_loc = [x, y, z, length_samples, width_samples, height_samples]
+                plane_loc = [align_to_sample_grid(x), align_to_sample_grid(y), align_to_sample_grid(z), length_samples, width_samples, height_samples]
 
             # 创建初始平面（空的，没有物体）
             initial_plane = PlaneMap(
@@ -202,9 +203,9 @@ class Room:
         if direction_map.dirt == direction.ceil:
             # 地板方向：新平面在物体顶部，xz平面
             plane_loc = [
-                new_item.x,
-                new_item.y,
-                new_item.z,
+                align_to_sample_grid(new_item.x),
+                align_to_sample_grid(new_item.y),
+                align_to_sample_grid(new_item.z),
                 new_item.length_sample_num,
                 new_item.height_sample_num,
                 new_item.width_sample_num
@@ -212,9 +213,9 @@ class Room:
         elif direction_map.dirt == direction.floor:
             # 天花板方向：新平面在物体底部，xz平面
             plane_loc = [
-                new_item.x,
-                new_item.y + new_item.width,
-                new_item.z,
+                align_to_sample_grid(new_item.x),
+                align_to_sample_grid(new_item.y + new_item.width),
+                align_to_sample_grid(new_item.z),
                 new_item.length_sample_num,
                 new_item.height_sample_num,
                 new_item.width_sample_num
@@ -222,9 +223,9 @@ class Room:
         elif direction_map.dirt == direction.left:
             # 左墙方向：新平面在物体右侧，yz平面
             plane_loc = [
-                new_item.x + new_item.length,
-                new_item.y,
-                new_item.z,
+                align_to_sample_grid(new_item.x + new_item.length),
+                align_to_sample_grid(new_item.y),
+                align_to_sample_grid(new_item.z),
                 new_item.width_sample_num,
                 new_item.height_sample_num,
                 new_item.length_sample_num
@@ -232,9 +233,9 @@ class Room:
         elif direction_map.dirt == direction.right:
             # 右墙方向：新平面在物体左侧，yz平面
             plane_loc = [
-                new_item.x,
-                new_item.y,
-                new_item.z,
+                align_to_sample_grid(new_item.x),
+                align_to_sample_grid(new_item.y),
+                align_to_sample_grid(new_item.z),
                 new_item.width_sample_num,
                 new_item.height_sample_num,
                 new_item.length_sample_num
@@ -242,9 +243,9 @@ class Room:
         elif direction_map.dirt == direction.backward:
             # 后墙方向：新平面在物体前侧，xy平面
             plane_loc = [
-                new_item.x,
-                new_item.y,
-                new_item.z,
+                align_to_sample_grid(new_item.x),
+                align_to_sample_grid(new_item.y),
+                align_to_sample_grid(new_item.z),
                 new_item.length_sample_num,
                 new_item.width_sample_num,
                 new_item.height_sample_num
@@ -252,9 +253,9 @@ class Room:
         else:  # direction.forward
             # 前墙方向：新平面在物体后侧，xy平面
             plane_loc = [
-                new_item.x,
-                new_item.y,
-                new_item.z + new_item.height,
+                align_to_sample_grid(new_item.x),
+                align_to_sample_grid(new_item.y),
+                align_to_sample_grid(new_item.z + new_item.height),
                 new_item.length_sample_num,
                 new_item.width_sample_num,
                 new_item.height_sample_num
@@ -270,23 +271,37 @@ class Room:
             initial_color=self.initial_color
         )
 
+        # 获取相反方向的距离图用于初始化颜色图
+        opposite_dirt = find_opposite_direction(direction_map.dirt)
+        opposite_color_map = new_item.get_distance_map(opposite_dirt).get_color_map()
+        
+        # 获取新平面的距离图对象
+        new_plane_dist = new_plane.get_distance()
+        
+        # 确保颜色图形状与平面距离图匹配
+        expected_shape = (new_plane_dist.height, new_plane_dist.width, 3)
+        if opposite_color_map.shape != expected_shape:
+            # 如果形状不匹配，进行转置或裁剪
+            if len(opposite_color_map.shape) == 3 and opposite_color_map.shape[0:2] == (new_plane_dist.width, new_plane_dist.height):
+                # 需要转置
+                opposite_color_map = np.transpose(opposite_color_map, (1, 0, 2))
+            else:
+                # 创建默认颜色图
+                opposite_color_map = np.full(expected_shape, 255, dtype=np.uint8)
+        
         # 初始化新平面的颜色图
-        new_plane.init_color_map(
-            new_item.get_distance_map(
-                find_opposite_direction(direction_map.dirt)).get_color_map())
+        new_plane.init_color_map(opposite_color_map)
 
         # 获取new_item的距离图对象和数据
-        item_dist_map_obj = new_item.get_distance_map(direction_map.dirt)
-        item_dist_map = item_dist_map_obj.get_dist_map()
-        item_height, item_width = item_dist_map.shape
+        item_height, item_width = new_plane_dist.get_dist_map().shape
 
         # 创建一个与item_dist_map同样大小的数组，初始化为plane_map的初始距离
         new_dist_map = np.full((item_height, item_width), 0, dtype=np.int16)
 
         # 计算new_item在plane_map中的位置偏移（以采样点为单位）
-        offset_x = round((item_dist_map_obj.x - plane_map.get_distance().x) / SAMPLE_RATE)
-        offset_y = round((item_dist_map_obj.y - plane_map.get_distance().y) / SAMPLE_RATE)
-        offset_z = round((item_dist_map_obj.z - plane_map.get_distance().z) / SAMPLE_RATE)
+        offset_x = new_plane_dist.x - plane_map.get_distance().x
+        offset_y = new_plane_dist.y - plane_map.get_distance().y
+        offset_z = new_plane_dist.z - plane_map.get_distance().z
 
         # 根据方向确定平面偏移
         if direction_map.dirt == direction.floor or direction_map.dirt == direction.ceil:
@@ -300,7 +315,7 @@ class Room:
             plane_offset_2 = offset_z
 
         # 计算重叠区域
-        plane_dist_map = plane_map.get_distance_map()
+        plane_dist_map = plane_map.get_dist_map()
         plane_height, plane_width = plane_dist_map.shape
 
         # 在plane_map中的起始和结束位置
@@ -318,7 +333,7 @@ class Room:
         # 如果有重叠区域，进行相减
         if plane_start_y < plane_end_y and plane_start_x < plane_end_x:
             plane_region = plane_dist_map[plane_start_y:plane_end_y, plane_start_x:plane_end_x]
-            item_region = item_dist_map[item_start_y:item_end_y, item_start_x:item_end_x]
+            item_region = new_plane_dist.get_dist_map()[item_start_y:item_end_y, item_start_x:item_end_x]
             new_dist_map[item_start_y:item_end_y, item_start_x:item_end_x] = plane_region - item_region
 
         # 初始化新平面的距离图
@@ -352,7 +367,10 @@ class Room:
         # 3. 在平面上找到合适的位置
         print(f"\n[步骤 3/7] 在平面上寻找合适的位置...")
         location = plane_map.find_location(new_item)
-        print(f"[OK] 找到位置: ({location[0]:.2f}, {location[1]:.2f}, {location[2]:.2f})")
+        if location is None:
+            print(f"[错误] 未找到合适的位置")
+            return
+        print(f"[OK] 找到位置: ({location[0]}, {location[1]}, {location[2]})")
 
         # 4. 设置物体位置
         print(f"\n[步骤 4/7] 设置物体位置...")
@@ -377,7 +395,7 @@ class Room:
 
         print(f"\n{'='*60}")
         print(f"物体 {new_item.item_name} 添加完成！")
-        print(f"房间内共有 {self.get_item_count()} 个物体")
+        print(f"房间内现有 {self.get_item_count()} 个物体")
         print(f"{'='*60}\n")
 
     def get_all_items(self) -> list[Item]:

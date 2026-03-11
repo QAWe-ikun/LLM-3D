@@ -1,9 +1,6 @@
 # claude 
 /.claude
 
-# glb
-**/*.glb
-
 # python
 **/__pycache__/
 **/*.pyc
@@ -12,3 +9,4 @@
 /output
 /.vscode/
 /models/*.glb
+/models/*.json

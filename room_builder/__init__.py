@@ -32,6 +32,7 @@ from .models import (
 # 导入工具函数和常量
 from .utils import (
     direction,
+    align_to_sample_grid,
     find_glb_model,
     read_glb_vertices,
     get_model_size,
@@ -70,6 +71,7 @@ __all__ = [
 
     # 工具函数
     'direction',
+    'align_to_sample_grid',
     'find_glb_model',
     'read_glb_vertices',
     'get_model_size',

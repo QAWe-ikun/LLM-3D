@@ -165,7 +165,7 @@ class DirectionMap:
             new_item: 新添加的物体
         """
         for plane in self.plane_map_list:
-            plane.update_distance(new_item)
+            plane.update(new_item)
 
     def update_base_plane(self, new_item: Item) -> None:
         """

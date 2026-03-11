@@ -4,7 +4,7 @@
 包含 Item 类，表示3D场景中的一个物体
 """
 
-from ..utils import direction, find_glb_model, read_glb_vertices, get_model_size, sample, normalize_glb
+from ..utils import direction, find_glb_model, read_glb_vertices, get_model_size, sample, normalize_glb, align_to_sample_grid
 from .distance_map import DistanceMap
 
 
@@ -49,26 +49,25 @@ class Item:
         self.vertices = normalized_vertices
         self.colors = colors
         self.mesh = mesh
-        self.center_point = center_point
 
         # 获取标准化后的模型尺寸和采样参数
-        x, y, z, length, width, height, length_sample_num, width_sample_num, height_sample_num = get_model_size(
+        x, y, z, length_sample_num, width_sample_num, height_sample_num = get_model_size(
             item_vertices=normalized_vertices
         )
 
-        # 边界框起点坐标
-        self.x, self.y, self.z = x, y, z
+        # 边界框起点坐标（对齐到采样点）
+        self.x, self.y, self.z = align_to_sample_grid(x), align_to_sample_grid(y), align_to_sample_grid(z)
         # 边界框尺寸
-        self.length, self.width, self.height = length, width, height
+        self.length, self.width, self.height = length_sample_num, width_sample_num, height_sample_num
         # 采样点数量
         self.length_sample_num = length_sample_num
         self.width_sample_num = width_sample_num
         self.height_sample_num = height_sample_num
 
         # 计算各个方向的距离图
-        self.round_distance = self._get_round_distance()
+        self._get_round_distance()
 
-    def _get_round_distance(self) -> dict[direction, DistanceMap]:
+    def _get_round_distance(self):
         """
         计算物体在各个方向上的采样距离图（私有方法）
 
@@ -78,7 +77,7 @@ class Item:
         round_distance = {}
         for dirt in direction:
             round_distance[dirt] = sample(self.mesh, self.colors, dirt)
-        return round_distance
+        self.round_distance = round_distance
 
     def get_distance_map(self, dirt: direction) -> DistanceMap:
         """
@@ -92,7 +91,7 @@ class Item:
         """
         return self.round_distance[dirt]
 
-    def set_item_location(self, location: list[float] | tuple[float, float, float]) -> None:
+    def set_item_location(self, location: list[int] | tuple[int, int, int]) -> None:
         """
         设置物体的位置，并更新各个方向距离图的原点坐标
 
@@ -101,10 +100,12 @@ class Item:
         """
         if len(location) != 3:
             raise ValueError("location必须包含3个坐标值[x, y, z]")
+    
+        self.x, self.y, self.z = location
 
         for dirt in direction:
             # 根据方向计算距离图的原点位置
-            temp_location = list(location)  # 转换为list以便修改
+            temp_location = list(location)  # 使用对齐后的位置
 
             if dirt == direction.floor or dirt == direction.ceil:
                 # 上下方向：调整y坐标

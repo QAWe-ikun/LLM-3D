@@ -15,6 +15,19 @@ class direction(Enum):
 def find_opposite_direction(dirt: direction) -> direction:
     return direction(5 - dirt.value)
 
+def align_to_sample_grid(coord: float) -> int:
+    """
+    将坐标对齐到采样点的数量
+    向下取整
+
+    参数:
+        coord: 原始坐标值
+
+    返回:
+        对齐后的坐标值
+    """
+    return math.ceil(coord / SAMPLE_RATE)
+
 def find_glb_model(model_name: str):
     """
     根据模型名称查找对应的GLB文件路径
@@ -33,7 +46,7 @@ def find_glb_model(model_name: str):
     # 获取项目根目录
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(current_dir))
-    model_path = os.path.join(project_root, "models", "0.glb")
+    model_path = os.path.join(project_root, "models", model_name)
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"模型文件不存在: {model_path}")
@@ -92,11 +105,11 @@ def get_model_size(item_vertices):
     length, width, height = dimensions
 
     # 根据采样率计算各轴需要的采样点数量
-    length_sample_num = math.ceil(length / SAMPLE_RATE)
-    width_sample_num = math.ceil(width / SAMPLE_RATE)
-    height_sample_num = math.ceil(height / SAMPLE_RATE)
+    length_sample_num = align_to_sample_grid(length)
+    width_sample_num = align_to_sample_grid(width)
+    height_sample_num = align_to_sample_grid(height)
 
-    return x, y, z, length, width, height, length_sample_num, width_sample_num, height_sample_num
+    return x, y, z, length_sample_num, width_sample_num, height_sample_num
 
 def normalize_glb(vertices, theoretical_volume: float, volume_rate: float, center: bool = True) -> tuple:
     """
@@ -183,8 +196,8 @@ def sample(mesh, vertex_colors, dirt: direction):
     if dirt == direction.floor or dirt == direction.ceil:
         # 投影到XZ平面，深度轴是Y
         plane_axis1, plane_axis2, depth_axis = 0, 2, 1
-        ray_direction = np.array([0, -1 if dirt == direction.forward else 1, 0])
-        origin_y = y if dirt == direction.backward else y + width
+        ray_direction = np.array([0, -1 if dirt == direction.floor else 1, 0])
+        origin_y = y if dirt == direction.ceil else y + width
         origin = [x, origin_y, z]
         min_coord1, min_coord2 = x, z
         plane_length, plane_width, plane_height = length, height, width
@@ -199,17 +212,16 @@ def sample(mesh, vertex_colors, dirt: direction):
     else:  # forward or backward
         # 投影到XY平面，深度轴是Z
         plane_axis1, plane_axis2, depth_axis = 0, 1, 2
-        ray_direction = np.array([0, 0, 1 if dirt == direction.floor else -1])
-        origin_z = z if dirt == direction.ceil else z + height
+        ray_direction = np.array([0, 0, 1 if dirt == direction.backward else -1])
+        origin_z = z if dirt == direction.backward else z + height
         origin = [x, y, origin_z]
         min_coord1, min_coord2 = x, y
         plane_length, plane_width, plane_height = length, width, height
 
     # 根据sample_rate计算网格数量
-    length = math.ceil(plane_length / SAMPLE_RATE)
-    width = math.ceil(plane_width / SAMPLE_RATE)
-    height = math.ceil(plane_height / SAMPLE_RATE)
-
+    length = align_to_sample_grid(plane_length)
+    width = align_to_sample_grid(plane_width)
+    height = align_to_sample_grid(plane_height)
 
     # 创建距离图和颜色图
     dist_map_nearest = np.full((width, length), height + 1, dtype=np.int16)  # 最近距离（用于颜色）

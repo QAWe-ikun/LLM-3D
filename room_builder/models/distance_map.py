@@ -14,9 +14,9 @@ class DistanceMap:
     def __init__(
         self,
         dirt: direction,
-        x: float,
-        y: float,
-        z: float,
+        x: int,
+        y: int,
+        z: int,
         height: int,
         width: int,
         initial_distance: int = 0,
@@ -66,7 +66,7 @@ class DistanceMap:
             raise ValueError(f"颜色图形状不匹配: 期望{(self.height, self.width, 3)}, 实际{color_map.shape}")
         self.color = color_map
 
-    def move_dist_map(self, location: list[float] | tuple[float, float, float]) -> None:
+    def move_dist_map(self, location: list[int] | tuple[int, int, int]) -> None:
         """
         移动距离图的原点位置
 
@@ -92,9 +92,9 @@ class DistanceMap:
             cover_threshold: 颜色更新阈值（网格点数量），当物体与平面的距离小于此值时颜色覆盖
         """
         # 计算覆盖距离图在当前距离图中的位置偏移（以采样点为单位）
-        offset_x = round((cover_distance_map.x - self.x) / SAMPLE_RATE)
-        offset_y = round((cover_distance_map.y - self.y) / SAMPLE_RATE)
-        offset_z = round((cover_distance_map.z - self.z) / SAMPLE_RATE)
+        offset_x = cover_distance_map.x - self.x
+        offset_y = cover_distance_map.y - self.y
+        offset_z = cover_distance_map.z - self.z
 
         # 根据 cover_distance_map 的方向确定平面偏移和深度偏移
         if cover_distance_map.dirt == direction.floor or cover_distance_map.dirt == direction.ceil:
@@ -112,7 +112,6 @@ class DistanceMap:
             plane_offset_1 = offset_x
             plane_offset_2 = offset_y
             depth_offset = abs(offset_z)
-
 
         # 获取覆盖距离图的数据
         cover_data = cover_distance_map.get_dist_map()
@@ -161,9 +160,9 @@ class DistanceMap:
             cover_color_map: 平面相同方向的距离图对象，用于得出覆盖的颜色
         """
         # 计算覆盖颜色图在当前颜色图中的位置偏移（以采样点为单位）
-        offset_x = round((cover_color_map.x - self.x) / SAMPLE_RATE)
-        offset_y = round((cover_color_map.y - self.y) / SAMPLE_RATE)    
-        offset_z = round((cover_color_map.z - self.z) / SAMPLE_RATE)
+        offset_x = cover_color_map.x - self.x
+        offset_y = cover_color_map.y - self.y
+        offset_z = cover_color_map.z - self.z
 
         # 根据 cover_color_map 的方向确定平面偏移和深度偏移
         if cover_color_map.dirt == direction.floor or cover_color_map.dirt == direction.ceil:
