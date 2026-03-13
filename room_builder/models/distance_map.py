@@ -79,6 +79,15 @@ class DistanceMap:
         self.y = location[1]
         self.z = location[2]
 
+    def get_shape(self) -> tuple[int, int]:
+        """
+        获取距离图的形状
+
+        返回:
+            (height, width) 二元组
+        """
+        return (self.height, self.width)
+
     def update(self, 
                cover_distance_map: 'DistanceMap',
                cover_color_map: 'DistanceMap',
@@ -91,6 +100,9 @@ class DistanceMap:
             cover_color_map: 平面相同方向的距离图对象，用于得出覆盖的颜色
             cover_threshold: 颜色更新阈值（网格点数量），当物体与平面的距离小于此值时颜色覆盖
         """
+        if cover_distance_map.get_shape() != cover_color_map.get_shape():
+            raise ValueError(f"cover_distance_map 和 cover_color_map 的形状必须相同，但得到 {cover_distance_map.get_shape()} 和 {cover_color_map.get_shape()}")
+
         # 计算覆盖距离图在当前距离图中的位置偏移（以采样点为单位）
         offset_x = cover_distance_map.x - self.x
         offset_y = cover_distance_map.y - self.y

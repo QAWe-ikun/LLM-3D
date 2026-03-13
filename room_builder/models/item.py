@@ -4,7 +4,8 @@
 包含 Item 类，表示3D场景中的一个物体
 """
 
-from ..utils import direction, find_glb_model, read_glb_vertices, get_model_size, sample, normalize_glb, align_to_sample_grid
+import numpy as np
+from ..utils import direction, find_glb_model, read_glb_vertices, sample, normalize_glb
 from .distance_map import DistanceMap
 
 
@@ -50,23 +51,16 @@ class Item:
         self.colors = colors
         self.mesh = mesh
 
-        # 获取标准化后的模型尺寸和采样参数
-        x, y, z, length_sample_num, width_sample_num, height_sample_num = get_model_size(
-            item_vertices=normalized_vertices
-        )
-
-        # 边界框起点坐标（对齐到采样点）
-        self.x, self.y, self.z = align_to_sample_grid(x), align_to_sample_grid(y), align_to_sample_grid(z)
-        # 边界框尺寸
-        self.length, self.width, self.height = length_sample_num, width_sample_num, height_sample_num
-        # 采样点数量
-        self.length_sample_num = length_sample_num
-        self.width_sample_num = width_sample_num
-        self.height_sample_num = height_sample_num
-
+        # 获取标准化后的模型位置
+        self.x, self.y, self.z = [0, 0, 0]
+                   
         # 计算各个方向的距离图
         self.round_distance: dict[direction, DistanceMap] = {}
         self._get_round_distance()
+
+        self.width = np.max(self.round_distance[direction.forward].get_dist_map())
+        self.length = np.max(self.round_distance[direction.left].get_dist_map())
+        self.height = np.max(self.round_distance[direction.floor].get_dist_map())
 
     def _get_round_distance(self):
         """
@@ -108,7 +102,7 @@ class Item:
 
             if dirt == direction.floor or dirt == direction.ceil:
                 # 上下方向：调整y坐标
-                y = self.y if dirt == direction.backward else self.y + self.width
+                y = self.y if dirt == direction.floor else self.y + self.height
                 temp_location[1] = y
             elif dirt == direction.left or dirt == direction.right:
                 # 左右方向：调整x坐标
@@ -116,7 +110,7 @@ class Item:
                 temp_location[0] = x
             else:  # forward or backward
                 # 前后方向：调整z坐标
-                z = self.z if dirt == direction.floor else self.z + self.height
+                z = self.z if dirt == direction.backward else self.z + self.width
                 temp_location[2] = z
 
             self.round_distance[dirt].move_dist_map(location=temp_location)

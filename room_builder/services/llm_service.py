@@ -97,13 +97,13 @@ class BailianClient:
         except requests.exceptions.RequestException as e:
             raise RuntimeError(f"调用百炼 API 失败：{str(e)}")
 
-    def chat_with_image(self, prompt: str, image_data: np.ndarray, model: str = "qwen-vl-max") -> str:
+    def chat_with_image(self, prompt: str, image_data: np.ndarray | list[np.ndarray], model: str = "qwen-vl-max") -> str:
         """
         调用百炼视觉模型进行图文对话
 
         参数:
             prompt: 用户提示词
-            image_data: numpy 数组，形状为 (H, W, 3) 的 RGB 图像数据
+            image_data: numpy 数组或数组列表，形状为 (H, W, 3) 的 RGB 图像数据
             model: 使用的视觉模型名称，默认为 qwen-vl-max
 
         返回:
@@ -113,18 +113,28 @@ class BailianClient:
         import io
         from PIL import Image
 
-        img = Image.fromarray(image_data)
-        buffer = io.BytesIO()
-        img.save(buffer, format='JPEG', quality=85)
-        img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        # 统一处理为列表
+        if isinstance(image_data, np.ndarray):
+            image_list = [image_data]
+        else:
+            image_list = image_data
+
+        # 构建 content 列表，先添加所有图片
+        content = []
+        for img_array in image_list:
+            img = Image.fromarray(img_array)
+            buffer = io.BytesIO()
+            img.save(buffer, format='JPEG', quality=85)
+            img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            content.append({"image": f"data:image/jpeg;base64,{img_base64}"})
+
+        # 最后添加文本提示
+        content.append({"text": prompt})
 
         messages = [
             {
                 "role": "user",
-                "content": [
-                    {"image": f"data:image/jpeg;base64,{img_base64}"},
-                    {"text": prompt}
-                ]
+                "content": content
             }
         ]
 

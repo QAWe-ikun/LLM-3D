@@ -210,9 +210,9 @@ class Room:
                 align_to_sample_grid(new_item.x),
                 align_to_sample_grid(new_item.y),
                 align_to_sample_grid(new_item.z),
-                new_item.length_sample_num,
-                new_item.height_sample_num,
-                new_item.width_sample_num
+                new_item.length,
+                new_item.height,
+                new_item.width
             ]
         elif direction_map.dirt == direction.floor:
             # 天花板方向：新平面在物体底部，xz平面
@@ -220,9 +220,9 @@ class Room:
                 align_to_sample_grid(new_item.x),
                 align_to_sample_grid(new_item.y + new_item.width),
                 align_to_sample_grid(new_item.z),
-                new_item.length_sample_num,
-                new_item.height_sample_num,
-                new_item.width_sample_num
+                new_item.length,
+                new_item.height,
+                new_item.width
             ]
         elif direction_map.dirt == direction.left:
             # 左墙方向：新平面在物体右侧，yz平面
@@ -230,9 +230,9 @@ class Room:
                 align_to_sample_grid(new_item.x + new_item.length),
                 align_to_sample_grid(new_item.y),
                 align_to_sample_grid(new_item.z),
-                new_item.width_sample_num,
-                new_item.height_sample_num,
-                new_item.length_sample_num
+                new_item.width,
+                new_item.height,
+                new_item.length
             ]
         elif direction_map.dirt == direction.right:
             # 右墙方向：新平面在物体左侧，yz平面
@@ -240,9 +240,9 @@ class Room:
                 align_to_sample_grid(new_item.x),
                 align_to_sample_grid(new_item.y),
                 align_to_sample_grid(new_item.z),
-                new_item.width_sample_num,
-                new_item.height_sample_num,
-                new_item.length_sample_num
+                new_item.width,
+                new_item.height,
+                new_item.length
             ]
         elif direction_map.dirt == direction.backward:
             # 后墙方向：新平面在物体前侧，xy平面
@@ -250,9 +250,9 @@ class Room:
                 align_to_sample_grid(new_item.x),
                 align_to_sample_grid(new_item.y),
                 align_to_sample_grid(new_item.z),
-                new_item.length_sample_num,
-                new_item.width_sample_num,
-                new_item.height_sample_num
+                new_item.length,
+                new_item.width,
+                new_item.height
             ]
         else:  # direction.forward
             # 前墙方向：新平面在物体后侧，xy平面
@@ -260,9 +260,9 @@ class Room:
                 align_to_sample_grid(new_item.x),
                 align_to_sample_grid(new_item.y),
                 align_to_sample_grid(new_item.z + new_item.height),
-                new_item.length_sample_num,
-                new_item.width_sample_num,
-                new_item.height_sample_num
+                new_item.length,
+                new_item.width,
+                new_item.height
             ]
 
         # 创建新的平面对象
