@@ -1,0 +1,52 @@
+[
+  {
+    "name": "0.glb",
+    "description": "模型0",
+    "volume": 0.5
+  },
+  {
+    "name": "1.glb",
+    "description": "模型1",
+    "volume": 0.8
+  },
+  {
+    "name": "2.glb",
+    "description": "模型2",
+    "volume": 1.2
+  },
+  {
+    "name": "3.glb",
+    "description": "模型3",
+    "volume": 0.3
+  },
+  {
+    "name": "4.glb",
+    "description": "模型4",
+    "volume": 0.9
+  },
+  {
+    "name": "5.glb",
+    "description": "模型5",
+    "volume": 1.5
+  },
+  {
+    "name": "6.glb",
+    "description": "模型6",
+    "volume": 0.6
+  },
+  {
+    "name": "7.glb",
+    "description": "模型7",
+    "volume": 1.0
+  },
+  {
+    "name": "8.glb",
+    "description": "模型8",
+    "volume": 0.7
+  },
+  {
+    "name": "9.glb",
+    "description": "模型9",
+    "volume": 1.1
+  }
+]

@@ -6,3 +6,4 @@
 
 然后需编写`item_lists.json`文件来配置模型数据
 
+可以参考已有的`item_lists.json`格式，并在上面进行更改
