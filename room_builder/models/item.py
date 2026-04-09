@@ -5,6 +5,7 @@
 """
 
 import numpy as np
+from typing import Union, List, Tuple
 from ..utils import direction, find_glb_model, read_glb_vertices, sample, normalize_glb
 from .distance_map import DistanceMap
 
@@ -84,7 +85,7 @@ class Item:
         """
         return self.round_distance[dirt]
 
-    def set_item_location(self, location: list[int] | tuple[int, int, int]) -> None:
+    def set_item_location(self, location: Union[List[int], Tuple[int, int, int]]) -> None:
         """
         设置物体的位置，并更新各个方向距离图的原点坐标
 

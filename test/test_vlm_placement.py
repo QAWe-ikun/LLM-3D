@@ -37,7 +37,7 @@ def test_vlm_with_visualization():
     print("测试 3：VLM 放置 + 平面图可视化")
     print("="*70)
 
-    room_type = "书房"
+    room_type = "森林"
     length = 4.0
     width = 4.0
     height = 3.0
@@ -57,8 +57,11 @@ def test_vlm_with_visualization():
         )
         print("  [成功] 房间构建完成")
     except Exception as e:
-        print(f"  [错误] 房间构建失败：{e}")
-        return None
+        import traceback
+        traceback.print_exc()
+        raise
+        # print(f"  [错误] 房间构建失败：{e}")
+        # return None
 
     print(f"\n【步骤 2】获取地板平面图")
     floor_map = room.direction_map_dict.get(direction.floor)

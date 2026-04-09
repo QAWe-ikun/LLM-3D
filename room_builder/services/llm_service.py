@@ -4,7 +4,7 @@
 提供与阿里云百炼大模型 API 的交互接口
 """
 import os
-from typing import Optional
+from typing import Optional, Union, List
 import requests
 import json
 import base64
@@ -97,7 +97,7 @@ class BailianClient:
         except requests.exceptions.RequestException as e:
             raise RuntimeError(f"调用百炼 API 失败：{str(e)}")
 
-    def chat_with_image(self, prompt: str, image_data: np.ndarray | list[np.ndarray], model: str = "qwen-vl-max") -> str:
+    def chat_with_image(self, prompt: str, image_data: Union[np.ndarray, List[np.ndarray]], model: str = "qwen-vl-max") -> str:
         """
         调用百炼视觉模型进行图文对话
 

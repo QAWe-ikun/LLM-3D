@@ -1,5 +1,38 @@
 # LLM-3D 代码结构
 
+## ✨ 新功能：基于图片的VLM智能布局
+
+LLM-3D现已支持使用视觉语言模型(VLM)分析房间图片并进行智能物体摆放！
+
+### 🎯 核心特性
+
+- **图片分析**: 自动识别空房间图片中的尺寸、结构和关键点
+- **智能摆放**: 基于视觉内容进行空间推理，确定最佳物体位置
+- **精确坐标**: 在图片坐标系中进行毫米级精度的物体摆放
+- **无缝集成**: 保持与原有API的完全兼容性
+- **回退保护**: VLM服务不可用时自动使用传统方法
+
+### 🚀 快速开始
+
+```python
+from room_builder import build
+
+# 上传房间图片，AI自动分析并布局
+room = build(
+    room_type="卧室",
+    item_list=[("床", "双人床", 2.0), ("书桌", "书桌", 0.8)],
+    image_path="my_room.jpg"
+)
+```
+
+### 📋 系统要求
+
+- Python 3.10+
+- 阿里云DashScope API密钥 (环境变量: `DASHSCOPE_API_KEY`)
+- 支持的图片格式: JPG, PNG, WebP
+
+---
+
 ## 测试
 
 见`test`文件夹下的说明文档
@@ -73,11 +106,42 @@ room_builder/
 
 ## 使用方式
 
-### 导入模块
+### 基本使用
 
 ```python
-# 导入模型
-from models import Room, Item, PlaneMap, DirectionMap, DistanceMap
+from room_builder import build
+
+# 传统方式：指定房间尺寸
+item_list = [("床", "双人床", 2.0), ("桌子", "书桌", 0.5)]
+room = build("卧室", 5.0, 4.0, 3.0, 60.0, item_list)
+```
+
+### 基于图片的智能布局 ✨ **新增功能**
+
+```python
+from room_builder import build
+
+# 方式1：仅分析图片获取房间信息
+room = build(room_type="卧室", image_path="room.jpg")
+
+# 方式2：分析图片并智能摆放物体
+item_list = [
+    ("床", "舒适的双人床", 2.0),
+    ("书桌", "学习用书桌", 0.8),
+    ("衣柜", "大型衣柜", 1.5)
+]
+room = build(room_type="卧室", item_list=item_list, image_path="room.jpg")
+```
+
+#### 基于图片布局的特点
+
+- **智能分析**: 使用VLM自动识别房间尺寸、结构和坐标
+- **视觉推理**: 基于图片内容进行空间推理和物体摆放
+- **精确坐标**: 在图片坐标系中进行精确摆放
+- **回退机制**: VLM失败时自动回退到传统方法
+- **实时可视化**: 自动生成摆放结果的可视化
+
+### 导入模块
 
 # 导入服务
 from services import get_client

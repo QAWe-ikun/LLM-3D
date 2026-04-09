@@ -76,3 +76,4 @@ def build(
         room.add_item(item)
 
     return room
+

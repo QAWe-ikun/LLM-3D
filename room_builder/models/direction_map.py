@@ -72,6 +72,8 @@ class DirectionMap:
         try:
             client = get_client()
             response = client.chat(prompt)
+            print("DEBUG int input:", repr(response))
+            print("DEBUG int input:", repr(response))
             should_add = "是" in response.strip()
 
             if should_add:

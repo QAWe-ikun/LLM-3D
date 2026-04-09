@@ -4,6 +4,7 @@
 包含 DistanceMap 类，用于存储和管理某个方向上的距离和颜色信息
 """
 import numpy as np
+from typing import Tuple, Union, List
 from ..utils import direction, SAMPLE_RATE
 
 
@@ -20,7 +21,7 @@ class DistanceMap:
         height: int,
         width: int,
         initial_distance: int = 0,
-        initial_color: tuple[int, int, int] = (255, 255, 255)
+        initial_color: Tuple[int, int, int] = (255, 255, 255)
     ):
         """
         初始化距离图
@@ -66,7 +67,7 @@ class DistanceMap:
             raise ValueError(f"颜色图形状不匹配: 期望{(self.height, self.width, 3)}, 实际{color_map.shape}")
         self.color = color_map
 
-    def move_dist_map(self, location: list[int] | tuple[int, int, int]) -> None:
+    def move_dist_map(self, location: Union[List[int], Tuple[int, int, int]]) -> None:
         """
         移动距离图的原点位置
 
@@ -79,7 +80,7 @@ class DistanceMap:
         self.y = location[1]
         self.z = location[2]
 
-    def get_shape(self) -> tuple[int, int]:
+    def get_shape(self) -> Tuple[int, int]:
         """
         获取距离图的形状
 
@@ -131,16 +132,16 @@ class DistanceMap:
 
         # 计算重叠区域
         # 在当前距离图中的起始和结束位置
-        start_y = max(0, plane_offset_2)
-        start_x = max(0, plane_offset_1)
-        end_y = min(self.height, plane_offset_2 + cover_height)
-        end_x = min(self.width, plane_offset_1 + cover_width)
+        start_y = int(max(0, plane_offset_2))
+        start_x = int(max(0, plane_offset_1))
+        end_y = int(min(self.height, plane_offset_2 + cover_height))
+        end_x = int(min(self.width, plane_offset_1 + cover_width))
 
         # 如果有重叠区域，进行更新
         if start_y < end_y and start_x < end_x:
             # 在覆盖距离图中的起始和结束位置
-            cover_start_y = max(0, -plane_offset_2)
-            cover_start_x = max(0, -plane_offset_1)
+            cover_start_y = int(max(0, -plane_offset_2))
+            cover_start_x = int(max(0, -plane_offset_1))
             cover_end_y = cover_start_y + (end_y - start_y)
             cover_end_x = cover_start_x + (end_x - start_x)
 
